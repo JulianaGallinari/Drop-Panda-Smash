@@ -29,7 +29,7 @@
     <!-- ALERTA DE MENSAGENS -->
     <div id="msgAlerta" class="hidden text-xs p-3.5 rounded-xl text-center font-medium leading-relaxed"></div>
 
-    <!-- CONTROLE DE MODO DE JOGO -->
+    <!-- CONTROLE DE MODO DE JOGO COM REAÇÃO EM TEMPO REAL -->
     <div class="bg-[#111827] p-3.5 rounded-2xl border border-[#1e293d] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
       <label for="seletorModo" class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
         <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -37,6 +37,7 @@
       </label>
       <select 
         id="seletorModo" 
+        onchange="aoMudarModo()"
         class="w-full sm:w-auto bg-[#1a2336] border border-[#2a364f] rounded-xl px-3.5 py-2 text-xs font-bold text-amber-400 focus:outline-none focus:border-blue-500 transition-all">
         <option value="individual">Individual (Rainha da Praia / Piscina)</option>
         <option value="dupla">Dupla Fixa</option>
@@ -164,6 +165,12 @@
     sessionStorage.removeItem('juizLogado');
     sessionStorage.clear();
     window.location.href = 'login.html';
+  }
+
+  function aoMudarModo() {
+    if (abaAtiva === 'praia' || abaAtiva === 'piscina') {
+      carregarConfrontosMataMata();
+    }
   }
 
   function mudarAba(aba) {
@@ -331,6 +338,7 @@
   // LÓGICA DO MATA-MATA
   function carregarConfrontosMataMata() {
     var abaNome = (abaAtiva === 'praia') ? 'rainha_praia' : 'rainha_piscina';
+    var modoAtivo = document.getElementById('seletorModo').value;
     var container = document.getElementById('containerMataMata');
     container.innerHTML = '<p class="text-xs text-slate-400 text-center py-8">Carregando chave de confrontos...</p>';
 
@@ -353,45 +361,62 @@
             ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Concluído</span>`
             : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Pendente</span>`;
 
-          var isModoDuplas = !c.atleta3 || c.atleta3 === '';
-
           var inputsHTML = "";
-          if (isModoDuplas) {
+
+          // SE SELECIONADO MODO DUPLA FIXA NO DROP-DOWN
+          if (modoAtivo === 'dupla') {
+            var nomeDuplaA = (c.atleta1 && c.atleta2) ? (c.atleta1 + ' / ' + c.atleta2) : (c.atleta1 || 'Dupla A');
+            var nomeDuplaB = (c.atleta3 && c.atleta4) ? (c.atleta3 + ' / ' + c.atleta4) : (c.atleta3 || 'Dupla B');
+
             inputsHTML = `
               <div class="grid grid-cols-2 gap-3">
                 <!-- QUADRO DUPLA A (VERMELHO) -->
                 <div class="bg-red-950/30 border border-red-500/30 p-3 rounded-xl text-center space-y-2">
                   <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider block">Dupla A</span>
-                  <p class="text-xs font-bold text-white truncate">${c.atleta1} / ${c.atleta2}</p>
+                  <p class="text-xs font-bold text-white truncate" title="${nomeDuplaA}">${nomeDuplaA}</p>
                   <input type="number" id="p1_${c.idConfronto}" value="${c.pontos1 || ''}" placeholder="0" class="w-20 bg-[#0d1527] border border-red-500/50 rounded-lg p-2 text-center text-sm font-bold text-amber-400 mx-auto block focus:outline-none focus:ring-1 focus:ring-red-400" />
                 </div>
 
                 <!-- QUADRO DUPLA B (AZUL) -->
                 <div class="bg-blue-950/30 border border-blue-500/30 p-3 rounded-xl text-center space-y-2">
                   <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Dupla B</span>
-                  <p class="text-xs font-bold text-white truncate">${c.atleta3 || 'Dupla B'}</p>
+                  <p class="text-xs font-bold text-white truncate" title="${nomeDuplaB}">${nomeDuplaB}</p>
                   <input type="number" id="p2_${c.idConfronto}" value="${c.pontos2 || ''}" placeholder="0" class="w-20 bg-[#0d1527] border border-blue-500/50 rounded-lg p-2 text-center text-sm font-bold text-amber-400 mx-auto block focus:outline-none focus:ring-1 focus:ring-blue-400" />
                 </div>
               </div>
             `;
           } else {
+            // SE SELECIONADO MODO INDIVIDUAL NO DROP-DOWN
             inputsHTML = `
-              <div class="grid grid-cols-2 gap-2">
-                <div class="bg-[#1a2336] p-2.5 rounded-xl border border-[#2a364f] space-y-1">
-                  <span class="text-[11px] font-semibold text-white block truncate">${c.atleta1}</span>
-                  <input type="number" id="p1_${c.idConfronto}" value="${c.pontos1 || ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-1.5 text-center text-sm font-bold text-amber-400" />
+              <div class="space-y-3">
+                <!-- BLUCO DUPLA A (VERMELHO) -->
+                <div class="bg-red-950/30 border border-red-500/30 p-3 rounded-xl space-y-2">
+                  <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider block text-center">Dupla A (Quadra Vermelha)</span>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-[#0d1527] p-2 rounded-lg border border-red-500/20 space-y-1">
+                      <span class="text-[11px] font-semibold text-white block truncate" title="${c.atleta1}">${c.atleta1 || 'Atleta 1'}</span>
+                      <input type="number" id="p1_${c.idConfronto}" value="${c.pontos1 || ''}" placeholder="0" class="w-full bg-[#1a2336] border border-red-500/40 rounded-lg p-1.5 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-red-400" />
+                    </div>
+                    <div class="bg-[#0d1527] p-2 rounded-lg border border-red-500/20 space-y-1">
+                      <span class="text-[11px] font-semibold text-white block truncate" title="${c.atleta2}">${c.atleta2 || 'Atleta 2'}</span>
+                      <input type="number" id="p2_${c.idConfronto}" value="${c.pontos2 || ''}" placeholder="0" class="w-full bg-[#1a2336] border border-red-500/40 rounded-lg p-1.5 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-red-400" />
+                    </div>
+                  </div>
                 </div>
-                <div class="bg-[#1a2336] p-2.5 rounded-xl border border-[#2a364f] space-y-1">
-                  <span class="text-[11px] font-semibold text-white block truncate">${c.atleta2}</span>
-                  <input type="number" id="p2_${c.idConfronto}" value="${c.pontos2 || ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-1.5 text-center text-sm font-bold text-amber-400" />
-                </div>
-                <div class="bg-[#1a2336] p-2.5 rounded-xl border border-[#2a364f] space-y-1">
-                  <span class="text-[11px] font-semibold text-white block truncate">${c.atleta3}</span>
-                  <input type="number" id="p3_${c.idConfronto}" value="${c.pontos3 || ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-1.5 text-center text-sm font-bold text-amber-400" />
-                </div>
-                <div class="bg-[#1a2336] p-2.5 rounded-xl border border-[#2a364f] space-y-1">
-                  <span class="text-[11px] font-semibold text-white block truncate">${c.atleta4}</span>
-                  <input type="number" id="p4_${c.idConfronto}" value="${c.pontos4 || ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-1.5 text-center text-sm font-bold text-amber-400" />
+
+                <!-- BLUCO DUPLA B (AZUL) -->
+                <div class="bg-blue-950/30 border border-blue-500/30 p-3 rounded-xl space-y-2">
+                  <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block text-center">Dupla B (Quadra Azul)</span>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-[#0d1527] p-2 rounded-lg border border-blue-500/20 space-y-1">
+                      <span class="text-[11px] font-semibold text-white block truncate" title="${c.atleta3}">${c.atleta3 || 'Atleta 3'}</span>
+                      <input type="number" id="p3_${c.idConfronto}" value="${c.pontos3 || ''}" placeholder="0" class="w-full bg-[#1a2336] border border-blue-500/40 rounded-lg p-1.5 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-400" />
+                    </div>
+                    <div class="bg-[#0d1527] p-2 rounded-lg border border-blue-500/20 space-y-1">
+                      <span class="text-[11px] font-semibold text-white block truncate" title="${c.atleta4}">${c.atleta4 || 'Atleta 4'}</span>
+                      <input type="number" id="p4_${c.idConfronto}" value="${c.pontos4 || ''}" placeholder="0" class="w-full bg-[#1a2336] border border-blue-500/40 rounded-lg p-1.5 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-400" />
+                    </div>
+                  </div>
                 </div>
               </div>
             `;
@@ -411,7 +436,7 @@
             ${c.classificadas ? `<p class="text-xs text-emerald-400 font-medium"><b>Classificadas:</b> ${c.classificadas}</p>` : ''}
 
             <button 
-              onclick="salvarMataMata('${abaNome}', '${c.idConfronto}', ${isModoDuplas})" 
+              onclick="salvarMataMata('${abaNome}', '${c.idConfronto}')" 
               class="w-full bg-[#2563eb] hover:bg-blue-500 text-white font-bold py-2.5 px-3 rounded-xl text-xs transition-all shadow">
               Salvar Placar
             </button>
@@ -425,19 +450,19 @@
       });
   }
 
-  function salvarMataMata(abaNome, idConfronto, isModoDuplas) {
+  function salvarMataMata(abaNome, idConfronto) {
     var modoAtivo = document.getElementById('seletorModo').value;
     var confronto = confrontosMataMataCarregados.find(function(item) { return item.idConfronto === idConfronto; });
     var pontosArray = [];
     
-    var p1 = Number(document.getElementById('p1_' + idConfronto).value) || 0;
-    var p2 = Number(document.getElementById('p2_' + idConfronto).value) || 0;
+    var p1 = Number(document.getElementById('p1_' + idConfronto) ? document.getElementById('p1_' + idConfronto).value : 0);
+    var p2 = Number(document.getElementById('p2_' + idConfronto) ? document.getElementById('p2_' + idConfronto).value : 0);
     pontosArray.push(p1);
     pontosArray.push(p2);
 
-    if (!isModoDuplas) {
-      var p3 = Number(document.getElementById('p3_' + idConfronto).value) || 0;
-      var p4 = Number(document.getElementById('p4_' + idConfronto).value) || 0;
+    if (modoAtivo === 'individual') {
+      var p3 = Number(document.getElementById('p3_' + idConfronto) ? document.getElementById('p3_' + idConfronto).value : 0);
+      var p4 = Number(document.getElementById('p4_' + idConfronto) ? document.getElementById('p4_' + idConfronto).value : 0);
       pontosArray.push(p3);
       pontosArray.push(p4);
     }
