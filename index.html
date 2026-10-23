@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Drop & Smash Tour</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg-preto: #17171D;
+      --pink-pop: #FF3293;
+      --lima-pop: #C8F542;
+      --laranja-pop: #FF8B43;
+      --areia-pop: #FFF1D9;
+    }
+
+    body {
+      background-image: linear-gradient(rgba(23, 23, 29, 0.85), rgba(23, 23, 29, 0.85)), url('https://i.postimg.cc/g0Ys40Dn/Iframe-Menu-Inicial.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: #FFFFFF;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .bg-pink { background-color: var(--pink-pop); }
+    .bg-lima { background-color: var(--lima-pop); }
+    .bg-laranja { background-color: var(--laranja-pop); }
+    .bg-areia { background-color: var(--areia-pop); }
+    
+    .text-pink { color: var(--pink-pop); }
+    .text-lima { color: var(--lima-pop); }
+    .text-preto { color: var(--bg-preto); }
+
+    .btn-shadow {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    }
+  </style>
+
+  <!-- SUPORTE A PWA / WEBAPP (ANDROID E IOS) -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Drop & Smash">
+  <meta name="theme-color" content="#020617">
+
+  <!-- ÍCONE DA APLICAÇÃO (IMGBB) -->
+  <link rel="icon" type="image/png" sizes="192x192" href="https://i.ibb.co/YTYQpbmL/panda-icone.png">
+  <link rel="apple-touch-icon" href="https://i.ibb.co/YTYQpbmL/panda-icone.png">
+
+  <!-- MANIFEST PARA ANDROID -->
+  <link rel="manifest" href='data:application/manifest+json,{"name":"Drop & Smash","short_name":"Drop&Smash","start_url":".","display":"standalone","background_color":"#020617","theme_color":"#020617","icons":[{"src":"https://i.ibb.co/YTYQpbmL/panda-icone.png","sizes":"192x192","type":"image/png"},{"src":"https://i.ibb.co/YTYQpbmL/panda-icone.png","sizes":"512x512","type":"image/png"}]}'>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+  <div class="w-full max-w-md bg-[#17171D] rounded-3xl overflow-hidden border border-gray-800 shadow-2xl flex flex-col min-h-[650px]">
+    
+    <!-- CABEÇALHO -->
+    <div class="relative text-center p-6 bg-gradient-to-b from-gray-900 to-[#17171D]">
+      <div class="w-32 h-32 mx-auto mb-3 rounded-full bg-gray-800 border-4 border-[#FF3293] flex items-center justify-center overflow-hidden">
+        <img id="mascote-img" src="https://i.postimg.cc/XvVLxv8G/panda-icone.png" alt="Mascote Panda Vermelho" class="object-cover w-full h-full">
+      </div>
+      <h1 class="text-2xl font-black tracking-wider text-pink uppercase">DROP & SMASH</h1>
+      <p class="text-xs text-lima uppercase tracking-widest font-bold">Beach Tennis Experience</p>
+      <p class="text-xs italic text-gray-300 mt-2">"No drop a gente brinca. No smash a gente resolve!"</p>
+    </div>
+
+    <!-- CONTEÚDO (TELAS SPA) -->
+    <div class="p-6 flex-1 flex flex-col justify-center">
+
+      <!-- TELA 1: HOME -->
+      <div id="tela-home" class="space-y-4">
+        <button onclick="navegarPara('tela-cadastro')" class="w-full bg-pink text-white font-extrabold py-4 px-6 rounded-2xl flex items-center justify-between btn-shadow hover:opacity-90 transition">
+          <span class="text-lg uppercase tracking-wider">Realizar Inscrição</span>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+
+        <button onclick="navegarPara('tela-consulta')" class="w-full bg-lima text-preto font-extrabold py-4 px-6 rounded-2xl flex items-center justify-between btn-shadow hover:opacity-90 transition">
+          <span class="text-lg uppercase tracking-wider">Consultar Inscrição</span>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+      </div>
+
+      <!-- TELA 2: FORMULÁRIO CADASTRO -->
+      <div id="tela-cadastro" class="hidden space-y-4">
+        <h2 class="text-xl font-bold text-pink mb-4 text-center">Cadastro de Atleta</h2>
+        
+        <div>
+          <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Nome Completo</label>
+          <input type="text" id="cad-nome" class="w-full bg-areia text-preto p-3 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-[#FF3293]" placeholder="Digite nome e sobrenome">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Telefone / WhatsApp (Com DDD)</label>
+          <input type="tel" id="cad-telefone" oninput="mascaraTelefone(this)" inputmode="numeric" maxlength="15" class="w-full bg-areia text-preto p-3 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-[#FF3293]" placeholder="(11) 99999-9999">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Categoria</label>
+          <select id="cad-categoria" class="w-full bg-areia text-preto p-3 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-[#FF3293]">
+            <option value="" disabled selected>Selecione a Categoria</option>
+            <option value="A">Categoria A</option>
+            <option value="B">Categoria B</option>
+            <option value="C">Categoria C</option>
+            <option value="D">Categoria D</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Tamanho de Camiseta</label>
+          <select id="cad-tamanho" class="w-full bg-areia text-preto p-3 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-[#FF3293]">
+            <option value="" disabled selected>Selecione o Tamanho</option>
+            <option value="P">P</option>
+            <option value="M">M</option>
+            <option value="G">G</option>
+            <option value="GG">GG</option>
+          </select>
+        </div>
+
+        <button onclick="enviarCadastro()" id="btn-enviar" class="w-full bg-pink text-white font-bold py-3 rounded-xl mt-4 hover:opacity-90 transition">
+          Finalizar Inscrição
+        </button>
+        <button onclick="navegarPara('tela-home')" class="w-full bg-transparent text-gray-400 font-bold py-2 text-sm hover:text-white">
+          Voltar
+        </button>
+      </div>
+
+      <!-- TELA 3: CONFIRMAÇÃO DE SUCESSO -->
+      <div id="tela-sucesso" class="hidden text-center space-y-4">
+        <div class="text-lima font-bold text-lg">Inscrição Confirmada!</div>
+        
+        <div class="bg-gray-900 border border-gray-700 p-6 rounded-2xl">
+          <p class="text-xs text-gray-400 uppercase">Seu Número de Inscrição</p>
+          <p id="res-id" class="text-4xl font-black text-pink my-2">#000</p>
+          <p id="res-nome" class="font-bold text-white text-lg">-</p>
+          <p id="res-detalhes" class="text-xs text-lima uppercase font-bold mt-1">-</p>
+        </div>
+
+        <p class="text-xs text-gray-300">Guarde seu número de inscrição para conferir a chave e os jogos no dia do torneio.</p>
+
+        <button onclick="navegarPara('tela-home')" class="w-full bg-lima text-preto font-bold py-3 rounded-xl hover:opacity-90 transition">
+          Voltar ao Início
+        </button>
+      </div>
+
+      <!-- TELA 4: CONSULTA -->
+      <div id="tela-consulta" class="hidden space-y-4">
+        <h2 class="text-xl font-bold text-lima mb-4 text-center">Consultar Inscrição</h2>
+        
+        <div>
+          <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Nome ou Número da Inscrição</label>
+          <input type="text" id="busca-termo" class="w-full bg-areia text-preto p-3 rounded-xl font-medium focus:outline-none" placeholder="Ex: Maria ou #001">
+        </div>
+
+        <button onclick="executarConsulta()" id="btn-consultar" class="w-full bg-lima text-preto font-bold py-3 rounded-xl hover:opacity-90 transition">
+          Buscar
+        </button>
+
+        <div id="area-resultado-consulta" class="hidden bg-gray-900 border border-gray-700 p-4 rounded-xl text-center"></div>
+
+        <button onclick="navegarPara('tela-home')" class="w-full bg-transparent text-gray-400 font-bold py-2 text-sm hover:text-white">
+          Voltar
+        </button>
+      </div>
+
+    </div>
+
+    <!-- RODAPÉ -->
+    <div class="p-4 border-t border-gray-800 text-center text-[10px] text-gray-500 uppercase tracking-widest">
+      Esporte • Conexão • Bem-Estar • Lifestyle
+    </div>
+
+  </div>
+
+  <script>
+    // URL do Web App oficial com a sua URL exata embutida
+    var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8ozRKqU-Hwoc5CeqPsdGvs90sN6CISmpcWDV0hZWCKG74rHU-ghxhZwC8efymA62oSA/exec";
+
+    // Função de comunicação Headless (Anti-CORS via text/plain)
+    function chamarAPI(acao, parametros) {
+      var dados = parametros || {};
+      dados.acao = acao;
+
+      return fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify(dados)
+      })
+      .then(function(resposta) {
+        if (!resposta.ok) {
+          throw new Error("Erro HTTP: " + resposta.status);
+        }
+        return resposta.json();
+      });
+    }
+
+    function navegarPara(idTela) {
+      ['tela-home', 'tela-cadastro', 'tela-sucesso', 'tela-consulta'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById(idTela).classList.remove('hidden');
+    }
+
+    function mascaraTelefone(input) {
+      let v = input.value.replace(/\D/g, '');
+      if (v.length > 11) v = v.slice(0, 11);
+      if (v.length > 6) {
+        v = `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
+      } else if (v.length > 2) {
+        v = `(${v.slice(0, 2)}) ${v.slice(2)}`;
+      } else if (v.length > 0) {
+        v = `(${v}`;
+      }
+      input.value = v;
+    }
+
+    function enviarCadastro() {
+      const nome = document.getElementById('cad-nome').value.trim();
+      const telefoneBruto = document.getElementById('cad-telefone').value.trim();
+      const telefoneApenasNumeros = telefoneBruto.replace(/\D/g, '');
+      const categoria = document.getElementById('cad-categoria').value;
+      const tamanhoCamiseta = document.getElementById('cad-tamanho').value;
+      const btn = document.getElementById('btn-enviar');
+
+      const palavrasNome = nome.split(/\s+/).filter(p => p.length > 0);
+      if (palavrasNome.length < 2) {
+        alert('Por favor, digite seu nome completo (mínimo nome e sobrenome)!');
+        return;
+      }
+
+      if (telefoneApenasNumeros.length < 10 || telefoneApenasNumeros.length > 11) {
+        alert('Por favor, digite um número de telefone válido com DDD!');
+        return;
+      }
+
+      if (!categoria || !tamanhoCamiseta) {
+        alert('Por favor, preencha todos os campos!');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Gravando Inscrição...';
+
+      chamarAPI('salvarInscricao', {
+        nome: nome,
+        telefone: telefoneBruto,
+        categoria: categoria,
+        tamanhoCamiseta: tamanhoCamiseta
+      })
+      .then(function(resposta) {
+        btn.disabled = false;
+        btn.innerText = 'Finalizar Inscrição';
+
+        if (resposta && resposta.sucesso) {
+          document.getElementById('res-id').innerText = resposta.idInscricao;
+          document.getElementById('res-nome').innerText = resposta.nome;
+          document.getElementById('res-detalhes').innerText = 'Categoria ' + resposta.categoria + ' • Camiseta ' + resposta.tamanhoCamiseta;
+          
+          document.getElementById('cad-nome').value = '';
+          document.getElementById('cad-telefone').value = '';
+          document.getElementById('cad-categoria').value = '';
+          document.getElementById('cad-tamanho').value = '';
+
+          navegarPara('tela-sucesso');
+        } else {
+          alert(resposta && resposta.erro ? resposta.erro : "Erro ao salvar inscrição.");
+        }
+      })
+      .catch(function(erro) {
+        btn.disabled = false;
+        btn.innerText = 'Finalizar Inscrição';
+        alert('Erro de conexão com o servidor: ' + erro.message);
+      });
+    }
+
+    function executarConsulta() {
+      const termo = document.getElementById('busca-termo').value.trim();
+      const btn = document.getElementById('btn-consultar');
+      const areaRes = document.getElementById('area-resultado-consulta');
+
+      if (!termo) {
+        alert('Digite seu nome ou número de inscrição para buscar!');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Buscando...';
+      
+      areaRes.innerHTML = '<p class="text-xs text-lima font-bold uppercase animate-pulse">Consultando planilha...</p>';
+      areaRes.classList.remove('hidden');
+
+      chamarAPI('consultarInscricao', { termo: termo })
+        .then(function(resposta) {
+          btn.disabled = false;
+          btn.innerText = 'Buscar';
+
+          if (resposta && resposta.encontrado) {
+            areaRes.innerHTML = `
+              <p class="text-xs text-gray-400 uppercase">Inscrição Encontrada</p>
+              <p class="text-3xl font-black text-pink my-1">${resposta.idInscricao}</p>
+              <p class="font-bold text-white text-lg">${resposta.nome}</p>
+              <p class="text-xs text-lima font-bold mt-1 uppercase">Categoria ${resposta.categoria} • Camiseta ${resposta.tamanhoCamiseta}</p>
+            `;
+          } else {
+            areaRes.innerHTML = `
+              <p class="text-sm text-red-400 font-bold">Nenhuma inscrição encontrada para "${termo}".</p>
+            `;
+          }
+        })
+        .catch(function(erro) {
+          btn.disabled = false;
+          btn.innerText = 'Buscar';
+          areaRes.innerHTML = `<p class="text-sm text-red-400 font-bold">Erro de conexão: ${erro ? erro.message : 'Falha na busca'}</p>`;
+        });
+    }
+  </script>
+</body>
+</html>
