@@ -29,6 +29,20 @@
     <!-- ALERTA DE MENSAGENS -->
     <div id="msgAlerta" class="hidden text-xs p-3.5 rounded-xl text-center font-medium leading-relaxed"></div>
 
+    <!-- CONTROLE DE MODO DE JOGO -->
+    <div class="bg-[#111827] p-3.5 rounded-2xl border border-[#1e293d] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+      <label for="seletorModo" class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        Modo de Pontuação Ativo:
+      </label>
+      <select 
+        id="seletorModo" 
+        class="w-full sm:w-auto bg-[#1a2336] border border-[#2a364f] rounded-xl px-3.5 py-2 text-xs font-bold text-amber-400 focus:outline-none focus:border-blue-500 transition-all">
+        <option value="individual">Individual (Rainha da Praia / Piscina)</option>
+        <option value="dupla">Dupla Fixa</option>
+      </select>
+    </div>
+
     <!-- ABAS DE NAVEGAÇÃO -->
     <div class="flex bg-[#111827] p-1 rounded-xl border border-[#1e293d] gap-1">
       <button 
@@ -108,13 +122,12 @@
   </main>
 
   <script>
-  // URL oficial do Apps Script configurada para arquitetura Headless (POST)
   var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8ozRKqU-Hwoc5CeqPsdGvs90sN6CISmpcWDV0hZWCKG74rHU-ghxhZwC8efymA62oSA/exec";
   var abaAtiva = 'fase1';
   var gruposCarregados = [];
+  var confrontosMataMataCarregados = [];
   var juizAtual = null;
 
-  // Função Headless Anti-CORS via POST com text/plain
   function chamarAPI(acao, parametros) {
     var dados = parametros || {};
     dados.acao = acao;
@@ -134,7 +147,6 @@
     });
   }
 
-  // INICIALIZAÇÃO DA PÁGINA
   window.addEventListener('DOMContentLoaded', function() {
     var sessao = sessionStorage.getItem('juizLogado');
     if (!sessao) {
@@ -148,7 +160,6 @@
     carregarListaGrupos();
   });
 
-  // LOGOUT CORRIGIDO
   function efetuarLogout() {
     sessionStorage.removeItem('juizLogado');
     sessionStorage.clear();
@@ -259,6 +270,7 @@
   function salvarPontosGrupo(e) {
     e.preventDefault();
     
+    var modoAtivo = document.getElementById('seletorModo').value;
     var idGrupo = document.getElementById('selectGrupo').value;
     var inputs = document.querySelectorAll('#containerAtletas input');
     var btnSalvar = document.getElementById('btnSalvarGrupo');
@@ -266,22 +278,43 @@
     var spinner = document.getElementById('spinnerGrupo');
 
     var pontosObjeto = {};
+    var atletasLista = [];
+    var maiorPontuacao = 0;
+
     inputs.forEach(function(input) {
-      pontosObjeto[input.getAttribute('data-atleta')] = Number(input.value) || 0;
+      var nomeAtleta = input.getAttribute('data-atleta');
+      var pts = Number(input.value) || 0;
+      pontosObjeto[nomeAtleta] = pts;
+      atletasLista.push(nomeAtleta);
+      if (pts > maiorPontuacao) maiorPontuacao = pts;
     });
 
     btnSalvar.disabled = true;
     btnText.textContent = "Gravando...";
     spinner.classList.remove('hidden');
 
-    chamarAPI('salvarPontosGrupo', { idGrupo: idGrupo, pontos: pontosObjeto })
+    var promessaEnvio;
+
+    if (modoAtivo === 'individual') {
+      promessaEnvio = chamarAPI('salvarPontosIndividual', {
+        atletas: atletasLista,
+        pontos: maiorPontuacao,
+        fase: 'grupos'
+      }).then(function() {
+        return chamarAPI('salvarPontosGrupo', { idGrupo: idGrupo, pontos: pontosObjeto });
+      });
+    } else {
+      promessaEnvio = chamarAPI('salvarPontosGrupo', { idGrupo: idGrupo, pontos: pontosObjeto });
+    }
+
+    promessaEnvio
       .then(function(res) {
         btnSalvar.disabled = false;
         btnText.textContent = "Salvar Pontuações";
         spinner.classList.add('hidden');
 
         if (res && res.sucesso) {
-          exibirAlerta(res.mensagem, "sucesso");
+          exibirAlerta("Pontuação registrada com sucesso (" + (modoAtivo === 'individual' ? 'Acúmulo Individual' : 'Dupla Fixa') + ")!", "sucesso");
           carregarListaGrupos();
         } else {
           exibirAlerta((res && res.erro) ? res.erro : "Erro ao salvar.", "erro");
@@ -304,6 +337,8 @@
     chamarAPI('listarMataMata', { abaNome: abaNome })
       .then(function(confrontos) {
         container.innerHTML = "";
+        confrontosMataMataCarregados = confrontos || [];
+
         if (!confrontos || confrontos.length === 0) {
           container.innerHTML = '<p class="text-xs text-slate-400 text-center py-8">O mata-mata ainda não foi gerado. Conclua todos os grupos da 1ª Fase primeiro.</p>';
           return;
@@ -323,14 +358,19 @@
           var inputsHTML = "";
           if (isModoDuplas) {
             inputsHTML = `
-              <div class="space-y-3">
-                <div class="flex items-center justify-between bg-[#1a2336] p-3 rounded-xl border border-[#2a364f]">
-                  <span class="text-xs font-bold text-white">${c.atleta1} / ${c.atleta2}</span>
-                  <input type="number" id="p1_${c.idConfronto}" value="${c.pontos1 || ''}" placeholder="0" class="w-16 bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400" />
+              <div class="grid grid-cols-2 gap-3">
+                <!-- QUADRO DUPLA A (VERMELHO) -->
+                <div class="bg-red-950/30 border border-red-500/30 p-3 rounded-xl text-center space-y-2">
+                  <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider block">Dupla A</span>
+                  <p class="text-xs font-bold text-white truncate">${c.atleta1} / ${c.atleta2}</p>
+                  <input type="number" id="p1_${c.idConfronto}" value="${c.pontos1 || ''}" placeholder="0" class="w-20 bg-[#0d1527] border border-red-500/50 rounded-lg p-2 text-center text-sm font-bold text-amber-400 mx-auto block focus:outline-none focus:ring-1 focus:ring-red-400" />
                 </div>
-                <div class="flex items-center justify-between bg-[#1a2336] p-3 rounded-xl border border-[#2a364f]">
-                  <span class="text-xs font-bold text-white">${c.atleta3 || 'Dupla B'} / ${c.atleta4 || ''}</span>
-                  <input type="number" id="p2_${c.idConfronto}" value="${c.pontos2 || ''}" placeholder="0" class="w-16 bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400" />
+
+                <!-- QUADRO DUPLA B (AZUL) -->
+                <div class="bg-blue-950/30 border border-blue-500/30 p-3 rounded-xl text-center space-y-2">
+                  <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Dupla B</span>
+                  <p class="text-xs font-bold text-white truncate">${c.atleta3 || 'Dupla B'}</p>
+                  <input type="number" id="p2_${c.idConfronto}" value="${c.pontos2 || ''}" placeholder="0" class="w-20 bg-[#0d1527] border border-blue-500/50 rounded-lg p-2 text-center text-sm font-bold text-amber-400 mx-auto block focus:outline-none focus:ring-1 focus:ring-blue-400" />
                 </div>
               </div>
             `;
@@ -386,26 +426,45 @@
   }
 
   function salvarMataMata(abaNome, idConfronto, isModoDuplas) {
+    var modoAtivo = document.getElementById('seletorModo').value;
+    var confronto = confrontosMataMataCarregados.find(function(item) { return item.idConfronto === idConfronto; });
     var pontosArray = [];
     
-    var p1 = document.getElementById('p1_' + idConfronto).value;
-    var p2 = document.getElementById('p2_' + idConfronto).value;
+    var p1 = Number(document.getElementById('p1_' + idConfronto).value) || 0;
+    var p2 = Number(document.getElementById('p2_' + idConfronto).value) || 0;
     pontosArray.push(p1);
     pontosArray.push(p2);
 
     if (!isModoDuplas) {
-      var p3 = document.getElementById('p3_' + idConfronto).value;
-      var p4 = document.getElementById('p4_' + idConfronto).value;
+      var p3 = Number(document.getElementById('p3_' + idConfronto).value) || 0;
+      var p4 = Number(document.getElementById('p4_' + idConfronto).value) || 0;
       pontosArray.push(p3);
       pontosArray.push(p4);
     }
 
     exibirAlerta("Salvando confronto...", "info");
 
-    chamarAPI('salvarMataMata', { abaNome: abaNome, idConfronto: idConfronto, pontosArray: pontosArray })
+    var promessaEnvio;
+
+    if (modoAtivo === 'individual' && confronto) {
+      var atletasNoJogo = [confronto.atleta1, confronto.atleta2, confronto.atleta3, confronto.atleta4].filter(Boolean);
+      var maiorPontoMataMata = Math.max.apply(null, pontosArray);
+
+      promessaEnvio = chamarAPI('salvarPontosIndividual', {
+        atletas: atletasNoJogo,
+        pontos: maiorPontoMataMata,
+        fase: 'matamata'
+      }).then(function() {
+        return chamarAPI('salvarMataMata', { abaNome: abaNome, idConfronto: idConfronto, pontosArray: pontosArray });
+      });
+    } else {
+      promessaEnvio = chamarAPI('salvarMataMata', { abaNome: abaNome, idConfronto: idConfronto, pontosArray: pontosArray });
+    }
+
+    promessaEnvio
       .then(function(res) {
         if (res && res.sucesso) {
-          exibirAlerta(res.mensagem, "sucesso");
+          exibirAlerta("Placar do mata-mata salvo com sucesso!", "sucesso");
           carregarConfrontosMataMata();
         } else {
           exibirAlerta((res && res.erro) ? res.erro : "Erro ao salvar placar.", "erro");
@@ -416,7 +475,6 @@
       });
   }
 
-  // UTILS
   function exibirAlerta(msg, tipo) {
     var box = document.getElementById('msgAlerta');
     box.textContent = msg;
