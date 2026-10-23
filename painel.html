@@ -300,39 +300,33 @@
     btnText.textContent = "Gravando...";
     spinner.classList.remove('hidden');
 
-    var promessaEnvio;
+    // Executa sempre a gravação individual no backend, e depois atualiza a aba de grupo
+    chamarAPI('salvarPontosIndividual', {
+      atletas: atletasLista,
+      pontos: maiorPontuacao,
+      fase: 'grupos'
+    })
+    .then(function() {
+      return chamarAPI('salvarPontosGrupo', { idGrupo: idGrupo, pontos: pontosObjeto });
+    })
+    .then(function(res) {
+      btnSalvar.disabled = false;
+      btnText.textContent = "Salvar Pontuações";
+      spinner.classList.add('hidden');
 
-    if (modoAtivo === 'individual') {
-      promessaEnvio = chamarAPI('salvarPontosIndividual', {
-        atletas: atletasLista,
-        pontos: maiorPontuacao,
-        fase: 'grupos'
-      }).then(function() {
-        return chamarAPI('salvarPontosGrupo', { idGrupo: idGrupo, pontos: pontosObjeto });
-      });
-    } else {
-      promessaEnvio = chamarAPI('salvarPontosGrupo', { idGrupo: idGrupo, pontos: pontosObjeto });
-    }
-
-    promessaEnvio
-      .then(function(res) {
-        btnSalvar.disabled = false;
-        btnText.textContent = "Salvar Pontuações";
-        spinner.classList.add('hidden');
-
-        if (res && res.sucesso) {
-          exibirAlerta("Pontuação registrada com sucesso (" + (modoAtivo === 'individual' ? 'Acúmulo Individual' : 'Dupla Fixa') + ")!", "sucesso");
-          carregarListaGrupos();
-        } else {
-          exibirAlerta((res && res.erro) ? res.erro : "Erro ao salvar.", "erro");
-        }
-      })
-      .catch(function(err) {
-        btnSalvar.disabled = false;
-        btnText.textContent = "Salvar Pontuações";
-        spinner.classList.add('hidden');
-        exibirAlerta("Erro de conexão: " + err.message, "erro");
-      });
+      if (res && res.sucesso) {
+        exibirAlerta("Pontuação registrada com sucesso no grupo e no ranking individual!", "sucesso");
+        carregarListaGrupos();
+      } else {
+        exibirAlerta((res && res.erro) ? res.erro : "Erro ao salvar.", "erro");
+      }
+    })
+    .catch(function(err) {
+      btnSalvar.disabled = false;
+      btnText.textContent = "Salvar Pontuações";
+      spinner.classList.add('hidden');
+      exibirAlerta("Erro de conexão: " + err.message, "erro");
+    });
   }
 
   // LÓGICA DO MATA-MATA
@@ -451,7 +445,6 @@
   }
 
   function salvarMataMata(abaNome, idConfronto) {
-    var modoAtivo = document.getElementById('seletorModo').value;
     var confronto = confrontosMataMataCarregados.find(function(item) { return item.idConfronto === idConfronto; });
     var pontosArray = [];
     
@@ -460,44 +453,40 @@
     pontosArray.push(p1);
     pontosArray.push(p2);
 
-    if (modoAtivo === 'individual') {
-      var p3 = Number(document.getElementById('p3_' + idConfronto) ? document.getElementById('p3_' + idConfronto).value : 0);
-      var p4 = Number(document.getElementById('p4_' + idConfronto) ? document.getElementById('p4_' + idConfronto).value : 0);
+    var p3Input = document.getElementById('p3_' + idConfronto);
+    var p4Input = document.getElementById('p4_' + idConfronto);
+    if (p3Input && p4Input) {
+      var p3 = Number(p3Input.value) || 0;
+      var p4 = Number(p4Input.value) || 0;
       pontosArray.push(p3);
       pontosArray.push(p4);
     }
 
     exibirAlerta("Salvando confronto...", "info");
 
-    var promessaEnvio;
+    var atletasNoJogo = [confronto.atleta1, confronto.atleta2, confronto.atleta3, confronto.atleta4].filter(Boolean);
+    var maiorPontoMataMata = Math.max.apply(null, pontosArray);
 
-    if (modoAtivo === 'individual' && confronto) {
-      var atletasNoJogo = [confronto.atleta1, confronto.atleta2, confronto.atleta3, confronto.atleta4].filter(Boolean);
-      var maiorPontoMataMata = Math.max.apply(null, pontosArray);
-
-      promessaEnvio = chamarAPI('salvarPontosIndividual', {
-        atletas: atletasNoJogo,
-        pontos: maiorPontoMataMata,
-        fase: 'matamata'
-      }).then(function() {
-        return chamarAPI('salvarMataMata', { abaNome: abaNome, idConfronto: idConfronto, pontosArray: pontosArray });
-      });
-    } else {
-      promessaEnvio = chamarAPI('salvarMataMata', { abaNome: abaNome, idConfronto: idConfronto, pontosArray: pontosArray });
-    }
-
-    promessaEnvio
-      .then(function(res) {
-        if (res && res.sucesso) {
-          exibirAlerta("Placar do mata-mata salvo com sucesso!", "sucesso");
-          carregarConfrontosMataMata();
-        } else {
-          exibirAlerta((res && res.erro) ? res.erro : "Erro ao salvar placar.", "erro");
-        }
-      })
-      .catch(function(err) {
-        exibirAlerta("Erro de conexão: " + err.message, "erro");
-      });
+    // Salva SEMPRE no ranking_individual e depois atualiza a aba de mata-mata
+    chamarAPI('salvarPontosIndividual', {
+      atletas: atletasNoJogo,
+      pontos: maiorPontoMataMata,
+      fase: 'matamata'
+    })
+    .then(function() {
+      return chamarAPI('salvarMataMata', { abaNome: abaNome, idConfronto: idConfronto, pontosArray: pontosArray });
+    })
+    .then(function(res) {
+      if (res && res.sucesso) {
+        exibirAlerta("Placar do mata-mata e ranking individual salvos com sucesso!", "sucesso");
+        carregarConfrontosMataMata();
+      } else {
+        exibirAlerta((res && res.erro) ? res.erro : "Erro ao salvar placar.", "erro");
+      }
+    })
+    .catch(function(err) {
+      exibirAlerta("Erro de conexão: " + err.message, "erro");
+    });
   }
 
   function exibirAlerta(msg, tipo) {
