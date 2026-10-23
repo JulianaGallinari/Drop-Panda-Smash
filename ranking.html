@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drop & Smash - Placar e Ranking Ao Vivo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#080d1a] text-slate-100 min-h-screen pb-12 font-sans">
+
+  <!-- BARRA SUPERIOR -->
+  <header class="bg-[#111827] border-b border-[#1e293d] sticky top-0 z-50 shadow-md">
+    <div class="max-w-3xl mx-auto px-4 py-3.5 flex items-center justify-between">
+      <div>
+        <h1 class="text-lg font-black tracking-wider text-[#2563eb] uppercase">DROP & SMASH</h1>
+        <p class="text-xs text-slate-400 font-medium flex items-center gap-1.5 mt-0.5">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Acompanhamento Ao Vivo
+        </p>
+      </div>
+      <button 
+        onclick="carregarDadosAtuais()" 
+        class="bg-[#1a2336] hover:bg-[#2563eb] text-slate-300 hover:text-white text-xs font-semibold px-3.5 py-2 rounded-xl border border-[#2a364f] transition-all flex items-center gap-1.5 active:scale-95">
+        🔄 Atualizar
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="max-w-3xl mx-auto px-4 pt-6 space-y-6">
+
+    <a href="index.html" class="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-white transition-colors">
+      ← Voltar para a Página Inicial
+    </a>
+
+    <!-- ABAS DE NAVEGAÇÃO PRINCIPAIS -->
+    <div class="flex bg-[#111827] p-1 rounded-2xl border border-[#1e293d] gap-1 shadow-lg">
+      <button 
+        id="btnAbaRanking" 
+        onclick="mudarAba('ranking')" 
+        class="flex-1 py-3 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all bg-[#2563eb] text-white shadow">
+        Ranking Geral
+      </button>
+      <button 
+        id="btnAbaPraia" 
+        onclick="mudarAba('praia')" 
+        class="flex-1 py-3 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all text-slate-400 hover:text-white">
+        Rainha da Praia
+      </button>
+      <button 
+        id="btnAbaPiscina" 
+        onclick="mudarAba('piscina')" 
+        class="flex-1 py-3 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all text-slate-400 hover:text-white">
+        Rainha da Piscina
+      </button>
+    </div>
+
+    <!-- SEÇÃO 1: RANKING GERAL (INDIVIDUAL / DUPLAS) -->
+    <section id="secRanking" class="space-y-4">
+      <div class="bg-[#111827] rounded-2xl border border-[#1e293d] overflow-hidden shadow-xl">
+        
+        <!-- SUB-SELETOR MODO INDIVIDUAL OU DUPLA -->
+        <div class="p-4 border-b border-[#1e293d] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#111827]">
+          <h2 class="text-xs font-black uppercase tracking-wider text-[#e0c9a6]">Classificação Geral</h2>
+          
+          <div class="flex bg-[#1a2336] p-1 rounded-xl border border-[#2a364f]">
+            <button 
+              id="subBtnInd" 
+              onclick="alternarTipoRanking('individual')" 
+              class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-[#2563eb] text-white transition-all">
+              Individual
+            </button>
+            <button 
+              id="subBtnDup" 
+              onclick="alternarTipoRanking('dupla')" 
+              class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white transition-all">
+              Duplas Fixas
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead id="thHeadRanking">
+              <!-- Cabeçalho dinâmico via JS -->
+            </thead>
+            <tbody id="tbRanking" class="divide-y divide-[#1e293d] text-xs">
+              <tr>
+                <td colspan="6" class="py-10 text-center text-slate-400 font-medium">Carregando classificação...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO 2: CHAVES MATA-MATA (PRAIA E PISCINA) -->
+    <section id="secMataMata" class="hidden space-y-4">
+      <div class="flex items-center justify-between px-1">
+        <h2 id="tituloMataMata" class="text-sm font-black uppercase tracking-wider text-[#e0c9a6]">Chave do Torneio</h2>
+      </div>
+      <div id="containerMataMata" class="space-y-4">
+        <!-- Confrontos via JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+  var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8ozRKqU-Hwoc5CeqPsdGvs90sN6CISmpcWDV0hZWCKG74rHU-ghxhZwC8efymA62oSA/exec";
+  var abaAtiva = 'ranking';
+  var tipoRankingAtivo = 'individual';
+
+  function chamarAPI(acao, parametros) {
+    var dados = parametros || {};
+    dados.acao = acao;
+
+    return fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(dados)
+    })
+    .then(function(res) { return res.json(); });
+  }
+
+  window.addEventListener('DOMContentLoaded', function() {
+    carregarDadosAtuais();
+    setInterval(carregarDadosAtuais, 15000);
+  });
+
+  function mudarAba(aba) {
+    abaAtiva = aba;
+    var btnRanking = document.getElementById('btnAbaRanking');
+    var btnPraia = document.getElementById('btnAbaPraia');
+    var btnPiscina = document.getElementById('btnAbaPiscina');
+    
+    var secRanking = document.getElementById('secRanking');
+    var secMataMata = document.getElementById('secMataMata');
+
+    [btnRanking, btnPraia, btnPiscina].forEach(function(btn) {
+      btn.className = "flex-1 py-3 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all text-slate-400 hover:text-white";
+    });
+
+    if (aba === 'ranking') {
+      btnRanking.className = "flex-1 py-3 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all bg-[#2563eb] text-white shadow";
+      secRanking.classList.remove('hidden');
+      secMataMata.classList.add('hidden');
+    } else {
+      var btnAlvo = (aba === 'praia') ? btnPraia : btnPiscina;
+      btnAlvo.className = "flex-1 py-3 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all bg-[#2563eb] text-white shadow";
+      secRanking.classList.add('hidden');
+      secMataMata.classList.remove('hidden');
+      
+      document.getElementById('tituloMataMata').textContent = (aba === 'praia') 
+        ? "Rainha da Praia - Chave Principal" 
+        : "Rainha da Piscina - Chave de Consolidação";
+    }
+    carregarDadosAtuais();
+  }
+
+  function alternarTipoRanking(tipo) {
+    tipoRankingAtivo = tipo;
+    var btnInd = document.getElementById('subBtnInd');
+    var btnDup = document.getElementById('subBtnDup');
+
+    if (tipo === 'individual') {
+      btnInd.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg bg-[#2563eb] text-white transition-all";
+      btnDup.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white transition-all";
+    } else {
+      btnDup.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg bg-[#2563eb] text-white transition-all";
+      btnInd.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white transition-all";
+    }
+    carregarRankingGeral();
+  }
+
+  function carregarDadosAtuais() {
+    if (abaAtiva === 'ranking') {
+      carregarRankingGeral();
+    } else {
+      carregarChaveMataMata(abaAtiva === 'praia' ? 'rainha_praia' : 'rainha_piscina');
+    }
+  }
+
+  function carregarRankingGeral() {
+    var thead = document.getElementById('thHeadRanking');
+    var tbody = document.getElementById('tbRanking');
+
+    if (tipoRankingAtivo === 'individual') {
+      thead.innerHTML = `
+        <tr class="bg-[#1a2336] text-[10px] uppercase tracking-wider text-slate-400 border-b border-[#1e293d]">
+          <th class="py-3.5 px-3 text-center w-10">#</th>
+          <th class="py-3.5 px-4">Atleta</th>
+          <th class="py-3.5 px-3 text-center">Cat.</th>
+          <th class="py-3.5 px-3 text-center">Grupos</th>
+          <th class="py-3.5 px-3 text-center">Mata-Mata</th>
+          <th class="py-3.5 px-4 text-center font-bold text-amber-400">Total</th>
+        </tr>
+      `;
+
+      chamarAPI('obterRankingIndividual').then(function(res) {
+        if (!res || !res.sucesso || !res.ranking || res.ranking.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-slate-400 font-medium">Nenhum dado registrado no ranking individual.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = "";
+        res.ranking.forEach(function(item, idx) {
+          var tr = document.createElement('tr');
+          tr.className = "hover:bg-[#1a2336]/40 transition-colors";
+          var medalha = idx === 0 ? "🥇 " : idx === 1 ? "🥈 " : idx === 2 ? "🥉 " : "";
+
+          tr.innerHTML = `
+            <td class="py-3.5 px-3 text-center font-bold ${idx < 3 ? 'text-amber-400' : 'text-slate-400'}">${idx + 1}</td>
+            <td class="py-3.5 px-4 font-bold text-white">${medalha}${item.nome} <span class="block text-[10px] text-slate-500 font-normal">ID: ${item.id}</span></td>
+            <td class="py-3.5 px-3 text-center text-slate-300">${item.categoria || '-'}</td>
+            <td class="py-3.5 px-3 text-center text-slate-300 font-mono">${item.pontosGrupos || 0}</td>
+            <td class="py-3.5 px-3 text-center text-slate-300 font-mono">${item.pontosMataMata || 0}</td>
+            <td class="py-3.5 px-4 text-center font-black text-amber-400 font-mono text-sm">${item.pontosTotais || 0}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+
+    } else {
+      thead.innerHTML = `
+        <tr class="bg-[#1a2336] text-[10px] uppercase tracking-wider text-slate-400 border-b border-[#1e293d]">
+          <th class="py-3.5 px-3 text-center w-10">#</th>
+          <th class="py-3.5 px-4">Dupla</th>
+          <th class="py-3.5 px-4 text-center font-bold text-amber-400">Pontos Acumulados</th>
+        </tr>
+      `;
+
+      chamarAPI('obterRankingDuplas').then(function(res) {
+        if (!res || !res.sucesso || !res.ranking || res.ranking.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" class="py-10 text-center text-slate-400 font-medium">Nenhum dado registrado para duplas.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = "";
+        res.ranking.forEach(function(item, idx) {
+          var tr = document.createElement('tr');
+          tr.className = "hover:bg-[#1a2336]/40 transition-colors";
+          var medalha = idx === 0 ? "🥇 " : idx === 1 ? "🥈 " : idx === 2 ? "🥉 " : "";
+
+          tr.innerHTML = `
+            <td class="py-3.5 px-3 text-center font-bold ${idx < 3 ? 'text-amber-400' : 'text-slate-400'}">${idx + 1}</td>
+            <td class="py-3.5 px-4 font-bold text-white">${medalha}${item.nome}</td>
+            <td class="py-3.5 px-4 text-center font-black text-amber-400 font-mono text-sm">${item.pontosTotais || 0}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+  }
+
+  function carregarChaveMataMata(abaNome) {
+    var container = document.getElementById('containerMataMata');
+    container.innerHTML = '<p class="text-xs text-slate-400 text-center py-10">Carregando chave de confrontos...</p>';
+
+    chamarAPI('listarMataMata', { abaNome: abaNome })
+      .then(function(confrontos) {
+        container.innerHTML = "";
+        if (!confrontos || confrontos.length === 0) {
+          container.innerHTML = '<p class="text-xs text-slate-400 text-center py-10">Chave ainda não gerada.</p>';
+          return;
+        }
+
+        confrontos.forEach(function(c) {
+          var card = document.createElement('div');
+          card.className = "bg-[#111827] p-5 rounded-2xl border border-[#1e293d] space-y-3 shadow-xl";
+
+          var isConcluido = (c.status === 'Concluído');
+          var statusBadge = isConcluido 
+            ? `<span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">Finalizado</span>`
+            : `<span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider animate-pulse">Em Andamento</span>`;
+
+          var nomeDuplaA = (c.atleta1 && c.atleta2) ? (c.atleta1 + ' / ' + c.atleta2) : (c.atleta1 || 'Dupla A');
+          var nomeDuplaB = (c.atleta3 && c.atleta4) ? (c.atleta3 + ' / ' + c.atleta4) : (c.atleta3 || 'Dupla B');
+
+          card.innerHTML = `
+            <div class="flex items-center justify-between border-b border-[#1e293d] pb-2.5">
+              <div>
+                <span class="text-xs font-black text-blue-400 uppercase tracking-wider">${c.fase}</span>
+                <span class="text-[10px] text-slate-500 ml-2">(${c.idConfronto})</span>
+              </div>
+              ${statusBadge}
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-1">
+              <div class="bg-red-950/20 border border-red-500/30 p-3.5 rounded-xl text-center space-y-1">
+                <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider block">Dupla A</span>
+                <p class="text-xs font-bold text-white truncate" title="${nomeDuplaA}">${nomeDuplaA}</p>
+                <p class="text-2xl font-black font-mono text-amber-400 pt-1">${c.pontos1 || 0}</p>
+              </div>
+
+              <div class="bg-blue-950/20 border border-blue-500/30 p-3.5 rounded-xl text-center space-y-1">
+                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Dupla B</span>
+                <p class="text-xs font-bold text-white truncate" title="${nomeDuplaB}">${nomeDuplaB}</p>
+                <p class="text-2xl font-black font-mono text-amber-400 pt-1">${c.pontos2 || 0}</p>
+              </div>
+            </div>
+
+            ${c.classificadas ? `<p class="text-xs text-emerald-400 font-medium text-center pt-1"><b>Classificadas:</b> ${c.classificadas}</p>` : ''}
+          `;
+
+          container.appendChild(card);
+        });
+      });
+  }
+  </script>
+</body>
+</html>
