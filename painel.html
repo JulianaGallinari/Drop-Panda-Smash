@@ -437,7 +437,6 @@
   }
 
   function salvarMataMata(abaNome, idConfronto) {
-    var confronto = confrontosMataMataCarregados.find(function(item) { return item.idConfronto === idConfronto; });
     var pontosArray = [];
     
     var p1 = Number(document.getElementById('p1_' + idConfronto) ? document.getElementById('p1_' + idConfronto).value : 0);
@@ -454,6 +453,22 @@
       pontosArray.push(p4);
     }
 
+    exibirAlerta("Salvando confronto...", "info");
+
+    // Chama o backend, que já cuida de atualizar a chave e creditar os pontos exatos de cada jogadora
+    chamarAPI('salvarMataMata', { abaNome: abaNome, idConfronto: idConfronto, pontosArray: pontosArray })
+    .then(function(res) {
+      if (res && res.sucesso) {
+        exibirAlerta("Placar do mata-mata e ranking individual salvos com sucesso!", "sucesso");
+        carregarConfrontosMataMata();
+      } else {
+        exibirAlerta((res && res.erro) ? res.erro : "Erro ao salvar placar.", "erro");
+      }
+    })
+    .catch(function(err) {
+      exibirAlerta("Erro de conexão: " + err.message, "erro");
+    });
+  }
     exibirAlerta("Salvando confronto...", "info");
 
     var atletasNoJogo = [confronto.atleta1, confronto.atleta2, confronto.atleta3, confronto.atleta4].filter(Boolean);
