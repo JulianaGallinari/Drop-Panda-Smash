@@ -482,6 +482,7 @@
 
   function salvarMataMata(abaNome, idConfronto) {
     var pontosArray = [];
+    var modoAtivo = document.getElementById('seletorModo').value;
     
     var p1 = Number(document.getElementById('p1_' + idConfronto) ? document.getElementById('p1_' + idConfronto).value : 0);
     var p2 = Number(document.getElementById('p2_' + idConfronto) ? document.getElementById('p2_' + idConfronto).value : 0);
@@ -499,7 +500,12 @@
 
     exibirAlerta("Salvando confronto...", "info");
 
-    chamarAPI('salvarMataMata', { abaNome: abaNome, idConfronto: idConfronto, pontosArray: pontosArray })
+    chamarAPI('salvarMataMata', { 
+      abaNome: abaNome, 
+      idConfronto: idConfronto, 
+      pontosArray: pontosArray,
+      modo: modoAtivo
+    })
     .then(function(res) {
       if (res && res.sucesso) {
         exibirAlerta("Placar do mata-mata salvo com sucesso!", "sucesso");
