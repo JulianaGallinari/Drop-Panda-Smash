@@ -366,7 +366,7 @@
           var card = document.createElement('div');
           card.className = "bg-[#111827] p-5 rounded-2xl border border-[#1e293d] space-y-4 shadow-lg";
 
-          var isConcluido = (c.status === 'Concluído');
+          var isConcluido = (c.status === 'Concluído' || c.status === 'Finalizado');
           var statusBadge = isConcluido 
             ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Concluído</span>`
             : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Pendente</span>`;
@@ -382,13 +382,13 @@
                 <div class="bg-red-950/30 border border-red-500/30 p-3 rounded-xl text-center space-y-2">
                   <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider block">Dupla A (Quadra Vermelha)</span>
                   <p class="text-xs font-bold text-white truncate" title="${nomeDuplaA}">${nomeDuplaA}</p>
-                  <input type="number" id="p1_${c.idConfronto}" value="${c.pontos1 || ''}" placeholder="0" class="w-20 bg-[#0d1527] border border-red-500/50 rounded-lg p-2 text-center text-sm font-bold text-amber-400 mx-auto block focus:outline-none focus:ring-1 focus:ring-red-400" />
+                  <input type="number" id="p1_${c.idConfronto}" value="${c.pontos1 !== undefined && c.pontos1 !== null ? c.pontos1 : ''}" placeholder="0" class="w-20 bg-[#0d1527] border border-red-500/50 rounded-lg p-2 text-center text-sm font-bold text-amber-400 mx-auto block focus:outline-none focus:ring-1 focus:ring-red-400" />
                 </div>
 
                 <div class="bg-blue-950/30 border border-blue-500/30 p-3 rounded-xl text-center space-y-2">
                   <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Dupla B (Quadra Azul)</span>
                   <p class="text-xs font-bold text-white truncate" title="${nomeDuplaB}">${nomeDuplaB}</p>
-                  <input type="number" id="p2_${c.idConfronto}" value="${c.pontos2 || ''}" placeholder="0" class="w-20 bg-[#0d1527] border border-blue-500/50 rounded-lg p-2 text-center text-sm font-bold text-amber-400 mx-auto block focus:outline-none focus:ring-1 focus:ring-blue-400" />
+                  <input type="number" id="p2_${c.idConfronto}" value="${c.pontos2 !== undefined && c.pontos2 !== null ? c.pontos2 : ''}" placeholder="0" class="w-20 bg-[#0d1527] border border-blue-500/50 rounded-lg p-2 text-center text-sm font-bold text-amber-400 mx-auto block focus:outline-none focus:ring-1 focus:ring-blue-400" />
                 </div>
               </div>
             `;
@@ -398,27 +398,58 @@
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">Pontuação Individual das Jogadoras</span>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1.5 shadow-md">
-                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta1}">${c.atleta1 || 'Atleta 1'}</span>
-                    <input type="number" id="p1_${c.idConfronto}" value="${c.pontos1 || ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta1 || ''}">${c.atleta1 || 'Atleta 1'}</span>
+                    <input type="number" id="p1_${c.idConfronto}" value="${c.pontos1 !== undefined && c.pontos1 !== null ? c.pontos1 : ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
                   </div>
 
                   <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1.5 shadow-md">
-                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta2}">${c.atleta2 || 'Atleta 2'}</span>
-                    <input type="number" id="p2_${c.idConfronto}" value="${c.pontos2 || ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta2 || ''}">${c.atleta2 || 'Atleta 2'}</span>
+                    <input type="number" id="p2_${c.idConfronto}" value="${c.pontos2 !== undefined && c.pontos2 !== null ? c.pontos2 : ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
                   </div>
 
                   <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1.5 shadow-md">
-                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta3}">${c.atleta3 || 'Atleta 3'}</span>
-                    <input type="number" id="p3_${c.idConfronto}" value="${c.pontos3 || ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta3 || ''}">${c.atleta3 || 'Atleta 3'}</span>
+                    <input type="number" id="p3_${c.idConfronto}" value="${c.pontos3 !== undefined && c.pontos3 !== null ? c.pontos3 : ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
                   </div>
 
                   <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1.5 shadow-md">
-                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta4}">${c.atleta4 || 'Atleta 4'}</span>
-                    <input type="number" id="p4_${c.idConfronto}" value="${c.pontos4 || ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta4 || ''}">${c.atleta4 || 'Atleta 4'}</span>
+                    <input type="number" id="p4_${c.idConfronto}" value="${c.pontos4 !== undefined && c.pontos4 !== null ? c.pontos4 : ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
                   </div>
                 </div>
               </div>
             `;
+          }
+
+          var isFinalPhase = c.fase && c.fase.toUpperCase().indexOf('FINAL') !== -1 && c.fase.toUpperCase().indexOf('SEMI') === -1;
+          var is23Phase = c.fase && (c.fase.toUpperCase().indexOf('2º E 3º') !== -1 || c.fase.toUpperCase().indexOf('SEGUNDO E TERCEIRO') !== -1);
+          var rodapeResultado = "";
+
+          if (c.classificadas) {
+            if (isFinalPhase && modoAtivo !== 'dupla') {
+              rodapeResultado = `
+                <div class="bg-amber-500/10 border border-amber-500/40 p-3 rounded-xl text-center space-y-1 shadow-lg">
+                  <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest block">🏆 PÓDIO DA FINAL INDIVIDUAL 🏆</span>
+                  <p class="text-xs font-extrabold text-amber-200">${c.classificadas}</p>
+                </div>
+              `;
+            } else if (isFinalPhase && modoAtivo === 'dupla') {
+              rodapeResultado = `
+                <div class="bg-amber-500/10 border border-amber-500/40 p-3 rounded-xl text-center space-y-1 shadow-lg">
+                  <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest block">🏆 DUPLA CAMPEÃ DO TORNEIO 🏆</span>
+                  <p class="text-xs font-extrabold text-amber-200">${c.classificadas}</p>
+                </div>
+              `;
+            } else if (is23Phase) {
+              rodapeResultado = `
+                <div class="bg-amber-500/10 border border-amber-500/40 p-3 rounded-xl text-center space-y-1 shadow-lg">
+                  <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest block">🥈 2º E 3º LUGAR DEFINIDOS 🥉</span>
+                  <p class="text-xs font-extrabold text-amber-200">${c.classificadas}</p>
+                </div>
+              `;
+            } else {
+              rodapeResultado = `<p class="text-xs text-emerald-400 font-medium text-center pt-1"><b>Classificadas:</b> ${c.classificadas}</p>`;
+            }
           }
 
           card.innerHTML = `
@@ -432,7 +463,7 @@
 
             ${inputsHTML}
 
-            ${c.classificadas ? `<p class="text-xs text-emerald-400 font-medium text-center pt-1"><b>Classificadas:</b> ${c.classificadas}</p>` : ''}
+            ${rodapeResultado}
 
             <button 
               onclick="salvarMataMata('${abaNome}', '${c.idConfronto}')" 
