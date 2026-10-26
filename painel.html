@@ -300,7 +300,6 @@
     btnText.textContent = "Gravando...";
     spinner.classList.remove('hidden');
 
-    // Executa sempre a gravação individual no backend, e depois atualiza a aba de grupo
     chamarAPI('salvarPontosIndividual', {
       atletas: atletasLista,
       pontos: maiorPontuacao,
@@ -329,7 +328,7 @@
     });
   }
 
-  // LÓGICA DO MATA-MATA
+  // LÓGICA DO MATA-MATA (ATUALIZADA)
   function carregarConfrontosMataMata() {
     var abaNome = (abaAtiva === 'praia') ? 'rainha_praia' : 'rainha_piscina';
     var modoAtivo = document.getElementById('seletorModo').value;
@@ -357,59 +356,52 @@
 
           var inputsHTML = "";
 
-          // SE SELECIONADO MODO DUPLA FIXA NO DROP-DOWN
+          // MODO DUPLA FIXA NO DROP-DOWN
           if (modoAtivo === 'dupla') {
             var nomeDuplaA = (c.atleta1 && c.atleta2) ? (c.atleta1 + ' / ' + c.atleta2) : (c.atleta1 || 'Dupla A');
             var nomeDuplaB = (c.atleta3 && c.atleta4) ? (c.atleta3 + ' / ' + c.atleta4) : (c.atleta3 || 'Dupla B');
 
             inputsHTML = `
               <div class="grid grid-cols-2 gap-3">
-                <!-- QUADRO DUPLA A (VERMELHO) -->
+                <!-- QUADRA VERMELHA (DUPLA A) -->
                 <div class="bg-red-950/30 border border-red-500/30 p-3 rounded-xl text-center space-y-2">
-                  <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider block">Dupla A</span>
+                  <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider block">Dupla A (Quadra Vermelha)</span>
                   <p class="text-xs font-bold text-white truncate" title="${nomeDuplaA}">${nomeDuplaA}</p>
                   <input type="number" id="p1_${c.idConfronto}" value="${c.pontos1 || ''}" placeholder="0" class="w-20 bg-[#0d1527] border border-red-500/50 rounded-lg p-2 text-center text-sm font-bold text-amber-400 mx-auto block focus:outline-none focus:ring-1 focus:ring-red-400" />
                 </div>
 
-                <!-- QUADRO DUPLA B (AZUL) -->
+                <!-- QUADRA AZUL (DUPLA B) -->
                 <div class="bg-blue-950/30 border border-blue-500/30 p-3 rounded-xl text-center space-y-2">
-                  <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Dupla B</span>
+                  <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Dupla B (Quadra Azul)</span>
                   <p class="text-xs font-bold text-white truncate" title="${nomeDuplaB}">${nomeDuplaB}</p>
                   <input type="number" id="p2_${c.idConfronto}" value="${c.pontos2 || ''}" placeholder="0" class="w-20 bg-[#0d1527] border border-blue-500/50 rounded-lg p-2 text-center text-sm font-bold text-amber-400 mx-auto block focus:outline-none focus:ring-1 focus:ring-blue-400" />
                 </div>
               </div>
             `;
           } else {
-            // SE SELECIONADO MODO INDIVIDUAL NO DROP-DOWN
+            // MODO INDIVIDUAL NO DROP-DOWN (FORMATO NEUTRO COM 4 CORES IGUAIS)
             inputsHTML = `
-              <div class="space-y-3">
-                <!-- BLUCO DUPLA A (VERMELHO) -->
-                <div class="bg-red-950/30 border border-red-500/30 p-3 rounded-xl space-y-2">
-                  <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider block text-center">Dupla A (Quadra Vermelha)</span>
-                  <div class="grid grid-cols-2 gap-2">
-                    <div class="bg-[#0d1527] p-2 rounded-lg border border-red-500/20 space-y-1">
-                      <span class="text-[11px] font-semibold text-white block truncate" title="${c.atleta1}">${c.atleta1 || 'Atleta 1'}</span>
-                      <input type="number" id="p1_${c.idConfronto}" value="${c.pontos1 || ''}" placeholder="0" class="w-full bg-[#1a2336] border border-red-500/40 rounded-lg p-1.5 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-red-400" />
-                    </div>
-                    <div class="bg-[#0d1527] p-2 rounded-lg border border-red-500/20 space-y-1">
-                      <span class="text-[11px] font-semibold text-white block truncate" title="${c.atleta2}">${c.atleta2 || 'Atleta 2'}</span>
-                      <input type="number" id="p2_${c.idConfronto}" value="${c.pontos2 || ''}" placeholder="0" class="w-full bg-[#1a2336] border border-red-500/40 rounded-lg p-1.5 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-red-400" />
-                    </div>
+              <div class="space-y-2">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">Pontuação Individual das Jogadoras</span>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1.5 shadow-md">
+                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta1}">${c.atleta1 || 'Atleta 1'}</span>
+                    <input type="number" id="p1_${c.idConfronto}" value="${c.pontos1 || ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
                   </div>
-                </div>
 
-                <!-- BLUCO DUPLA B (AZUL) -->
-                <div class="bg-blue-950/30 border border-blue-500/30 p-3 rounded-xl space-y-2">
-                  <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block text-center">Dupla B (Quadra Azul)</span>
-                  <div class="grid grid-cols-2 gap-2">
-                    <div class="bg-[#0d1527] p-2 rounded-lg border border-blue-500/20 space-y-1">
-                      <span class="text-[11px] font-semibold text-white block truncate" title="${c.atleta3}">${c.atleta3 || 'Atleta 3'}</span>
-                      <input type="number" id="p3_${c.idConfronto}" value="${c.pontos3 || ''}" placeholder="0" class="w-full bg-[#1a2336] border border-blue-500/40 rounded-lg p-1.5 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-400" />
-                    </div>
-                    <div class="bg-[#0d1527] p-2 rounded-lg border border-blue-500/20 space-y-1">
-                      <span class="text-[11px] font-semibold text-white block truncate" title="${c.atleta4}">${c.atleta4 || 'Atleta 4'}</span>
-                      <input type="number" id="p4_${c.idConfronto}" value="${c.pontos4 || ''}" placeholder="0" class="w-full bg-[#1a2336] border border-blue-500/40 rounded-lg p-1.5 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-400" />
-                    </div>
+                  <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1.5 shadow-md">
+                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta2}">${c.atleta2 || 'Atleta 2'}</span>
+                    <input type="number" id="p2_${c.idConfronto}" value="${c.pontos2 || ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+                  </div>
+
+                  <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1.5 shadow-md">
+                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta3}">${c.atleta3 || 'Atleta 3'}</span>
+                    <input type="number" id="p3_${c.idConfronto}" value="${c.pontos3 || ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+                  </div>
+
+                  <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1.5 shadow-md">
+                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta4}">${c.atleta4 || 'Atleta 4'}</span>
+                    <input type="number" id="p4_${c.idConfronto}" value="${c.pontos4 || ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
                   </div>
                 </div>
               </div>
@@ -427,11 +419,11 @@
 
             ${inputsHTML}
 
-            ${c.classificadas ? `<p class="text-xs text-emerald-400 font-medium"><b>Classificadas:</b> ${c.classificadas}</p>` : ''}
+            ${c.classificadas ? `<p class="text-xs text-emerald-400 font-medium text-center pt-1"><b>Classificadas:</b> ${c.classificadas}</p>` : ''}
 
             <button 
               onclick="salvarMataMata('${abaNome}', '${c.idConfronto}')" 
-              class="w-full bg-[#2563eb] hover:bg-blue-500 text-white font-bold py-2.5 px-3 rounded-xl text-xs transition-all shadow">
+              class="w-full bg-[#2563eb] hover:bg-blue-500 text-white font-bold py-2.5 px-3 rounded-xl text-xs transition-all shadow active:scale-95">
               Salvar Placar
             </button>
           `;
@@ -467,7 +459,6 @@
     var atletasNoJogo = [confronto.atleta1, confronto.atleta2, confronto.atleta3, confronto.atleta4].filter(Boolean);
     var maiorPontoMataMata = Math.max.apply(null, pontosArray);
 
-    // Salva SEMPRE no ranking_individual e depois atualiza a aba de mata-mata
     chamarAPI('salvarPontosIndividual', {
       atletas: atletasNoJogo,
       pontos: maiorPontoMataMata,
