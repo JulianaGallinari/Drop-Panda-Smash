@@ -122,7 +122,7 @@
 
   </main>
 
-  <script>
+<script>
   var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8ozRKqU-Hwoc5CeqPsdGvs90sN6CISmpcWDV0hZWCKG74rHU-ghxhZwC8efymA62oSA/exec";
   var abaAtiva = 'fase1';
   var gruposCarregados = [];
@@ -421,8 +421,12 @@
             `;
           }
 
-          var isFinalPhase = c.fase && c.fase.toUpperCase().indexOf('FINAL') !== -1 && c.fase.toUpperCase().indexOf('SEMI') === -1;
-          var is23Phase = c.fase && (c.fase.toUpperCase().indexOf('2º E 3º') !== -1 || c.fase.toUpperCase().indexOf('SEGUNDO E TERCEIRO') !== -1);
+          var faseUpper = (c.fase || '').toUpperCase().trim();
+          var idUpper = (c.idConfronto || '').toUpperCase().trim();
+
+          var isFinalPhase = (faseUpper === 'FINAL' || idUpper.indexOf('-FIN') !== -1);
+          var is3Phase = (faseUpper.indexOf('3º') !== -1 || faseUpper.indexOf('TERCEIRO') !== -1 || idUpper.indexOf('-D3') !== -1 || idUpper.indexOf('-D23') !== -1);
+
           var rodapeResultado = "";
 
           if (c.classificadas) {
@@ -436,14 +440,14 @@
             } else if (isFinalPhase && modoAtivo === 'dupla') {
               rodapeResultado = `
                 <div class="bg-amber-500/10 border border-amber-500/40 p-3 rounded-xl text-center space-y-1 shadow-lg">
-                  <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest block">🏆 DUPLA CAMPEÃ DO TORNEIO 🏆</span>
+                  <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest block">🏆 1º E 2º LUGAR DEFINIDOS 🏆</span>
                   <p class="text-xs font-extrabold text-amber-200">${c.classificadas}</p>
                 </div>
               `;
-            } else if (is23Phase) {
+            } else if (is3Phase && modoAtivo === 'dupla') {
               rodapeResultado = `
                 <div class="bg-amber-500/10 border border-amber-500/40 p-3 rounded-xl text-center space-y-1 shadow-lg">
-                  <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest block">🥈 2º E 3º LUGAR DEFINIDOS 🥉</span>
+                  <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest block">🥉 3º LUGAR DEFINIDO 🥉</span>
                   <p class="text-xs font-extrabold text-amber-200">${c.classificadas}</p>
                 </div>
               `;
@@ -535,6 +539,7 @@
     box.classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-  </script>
+</script>
+  
 </body>
 </html>
