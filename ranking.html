@@ -219,7 +219,6 @@
 
         tbody.innerHTML = "";
 
-        // SEPARAÇÃO EM DUAS LISTAS: RAINHA DA PRAIA E RAINHA DA PISCINA
         var listaPraia = res.ranking.filter(function(i) {
           return String(i.torneioMataMata || '').toLowerCase().indexOf('piscina') === -1;
         });
@@ -231,7 +230,6 @@
         function renderizarGrupoRanking(titulo, lista, corBg) {
           if (lista.length === 0) return;
 
-          // Cabeçalho da Chave
           var trTitulo = document.createElement('tr');
           trTitulo.className = corBg + " border-y border-[#2a364f]";
           trTitulo.innerHTML = `
@@ -241,7 +239,6 @@
           `;
           tbody.appendChild(trTitulo);
 
-          // Linhas das Atletas
           lista.sort(function(a, b) { return (b.pontosTotais || 0) - (a.pontosTotais || 0); });
 
           lista.forEach(function(item, idx) {
@@ -262,7 +259,6 @@
           });
         }
 
-        // Renderiza primeiro a Rainha da Praia e depois a Rainha da Piscina
         renderizarGrupoRanking("RAINHA DA PRAIA (CHAVE PRINCIPAL)", listaPraia, "bg-[#1e293d]");
         renderizarGrupoRanking("RAINHA DA PISCINA (CHAVE DE CONSOLAÇÃO)", listaPiscina, "bg-[#1a2336]");
 
@@ -291,21 +287,53 @@
         }
 
         tbody.innerHTML = "";
-        lista.forEach(function(item, idx) {
-          var tr = document.createElement('tr');
-          tr.className = "hover:bg-[#1a2336]/40 transition-colors";
-          var medalha = idx === 0 ? "🥇 " : idx === 1 ? "🥈 " : idx === 2 ? "🥉 " : "";
 
-          var nomeDupla = item.dupla || item.nome || '';
-          var pontos = (item.pontos !== undefined) ? item.pontos : (item.pontosTotais || 0);
-
-          tr.innerHTML = `
-            <td class="py-3.5 px-3 text-center font-bold ${idx < 3 ? 'text-amber-400' : 'text-slate-400'}">${idx + 1}</td>
-            <td class="py-3.5 px-4 font-bold text-white">${medalha}${nomeDupla}</td>
-            <td class="py-3.5 px-4 text-center font-black text-amber-400 font-mono text-sm">${pontos}</td>
-          `;
-          tbody.appendChild(tr);
+        // SEPARAÇÃO EM DUAS LISTAS PARA DUPLAS: PRAIA E PISCINA
+        var listaPraia = lista.filter(function(i) {
+          return String(i.torneioMataMata || '').toLowerCase().indexOf('piscina') === -1;
         });
+
+        var listaPiscina = lista.filter(function(i) {
+          return String(i.torneioMataMata || '').toLowerCase().indexOf('piscina') !== -1;
+        });
+
+        function renderizarGrupoDuplas(titulo, sublista, corBg) {
+          if (sublista.length === 0) return;
+
+          var trTitulo = document.createElement('tr');
+          trTitulo.className = corBg + " border-y border-[#2a364f]";
+          trTitulo.innerHTML = `
+            <td colspan="3" class="py-2.5 px-4 font-black text-xs uppercase tracking-widest text-amber-400">
+              👑 ${titulo} (${sublista.length} DUPLAS)
+            </td>
+          `;
+          tbody.appendChild(trTitulo);
+
+          sublista.sort(function(a, b) {
+            var ptsA = (a.pontos !== undefined) ? a.pontos : (a.pontosTotais || 0);
+            var ptsB = (b.pontos !== undefined) ? b.pontos : (b.pontosTotais || 0);
+            return ptsB - ptsA;
+          });
+
+          sublista.forEach(function(item, idx) {
+            var tr = document.createElement('tr');
+            tr.className = "hover:bg-[#1a2336]/40 transition-colors";
+            var medalha = idx === 0 ? "🥇 " : idx === 1 ? "🥈 " : idx === 2 ? "🥉 " : "";
+
+            var nomeDupla = item.dupla || item.nome || '';
+            var pontos = (item.pontos !== undefined) ? item.pontos : (item.pontosTotais || 0);
+
+            tr.innerHTML = `
+              <td class="py-3.5 px-3 text-center font-bold ${idx < 3 ? 'text-amber-400' : 'text-slate-400'}">${idx + 1}</td>
+              <td class="py-3.5 px-4 font-bold text-white">${medalha}${nomeDupla}</td>
+              <td class="py-3.5 px-4 text-center font-black text-amber-400 font-mono text-sm">${pontos}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+
+        renderizarGrupoDuplas("RAINHA DA PRAIA (CHAVE PRINCIPAL)", listaPraia, "bg-[#1e293d]");
+        renderizarGrupoDuplas("RAINHA DA PISCINA (CHAVE DE CONSOLAÇÃO)", listaPiscina, "bg-[#1a2336]");
       });
     }
   }
@@ -356,11 +384,9 @@
           var isFinal = c.fase && c.fase.toUpperCase().indexOf('FINAL') !== -1 && c.fase.toUpperCase().indexOf('SEMI') === -1;
           var corpoConfronto = "";
 
-          // FORÇA MODO INDIVIDUAL QUANDO MODO FOR '2' OU HOUVER 4 ATLETAS
           var eModoIndividual = (modo === '2') || (c.atleta3 && c.atleta4 && (c.pontos3 !== undefined && c.pontos3 !== ""));
 
           if (eModoIndividual) {
-            // EXIBIÇÃO INDIVIDUAL: 4 QUADROS NEUTROS COM AS PONTUAÇÕES DE CADA UMA
             corpoConfronto = `
               <div class="space-y-2 pt-1">
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">Pontuação Individual das Atletas</span>
@@ -385,7 +411,6 @@
               </div>
             `;
           } else {
-            // EXIBIÇÃO DUPLAS FIXAS: QUADRA VERMELHA VS AZUL
             var nomeDuplaA = (c.atleta1 && c.atleta2) ? (c.atleta1 + ' / ' + c.atleta2) : (c.atleta1 || 'Dupla A');
             var nomeDuplaB = (c.atleta3 && c.atleta4) ? (c.atleta3 + ' / ' + c.atleta4) : (c.atleta3 || 'Dupla B');
 
