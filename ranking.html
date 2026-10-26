@@ -62,7 +62,6 @@
     <section id="secRanking" class="space-y-4">
       <div class="bg-[#111827] rounded-2xl border border-[#1e293d] overflow-hidden shadow-xl">
         
-        <!-- SUB-SELETOR MODO INDIVIDUAL OU DUPLA -->
         <div class="p-4 border-b border-[#1e293d] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#111827]">
           <h2 class="text-xs font-black uppercase tracking-wider text-[#e0c9a6]">Classificação Geral</h2>
           
@@ -84,12 +83,10 @@
 
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead id="thHeadRanking">
-              <!-- Cabeçalho dinâmico via JS -->
-            </thead>
+            <thead id="thHeadRanking"></thead>
             <tbody id="tbRanking" class="divide-y divide-[#1e293d] text-xs">
               <tr>
-                <td colspan="6" class="py-10 text-center text-slate-400 font-medium">Carregando classificação...</td>
+                <td colspan="7" class="py-10 text-center text-slate-400 font-medium">Carregando classificação...</td>
               </tr>
             </tbody>
           </table>
@@ -221,22 +218,54 @@
         }
 
         tbody.innerHTML = "";
-        res.ranking.forEach(function(item, idx) {
-          var tr = document.createElement('tr');
-          tr.className = "hover:bg-[#1a2336]/40 transition-colors";
-          var medalha = idx === 0 ? "🥇 " : idx === 1 ? "🥈 " : idx === 2 ? "🥉 " : "";
 
-          tr.innerHTML = `
-            <td class="py-3.5 px-3 text-center font-bold ${idx < 3 ? 'text-amber-400' : 'text-slate-400'}">${idx + 1}</td>
-            <td class="py-3.5 px-4 font-bold text-white">${medalha}${item.nome || ''} <span class="block text-[10px] text-slate-500 font-normal">ID: ${item.id || '-'}</span></td>
-            <td class="py-3.5 px-3 text-center text-slate-300">${item.categoria || '-'}</td>
-            <td class="py-3.5 px-3 text-center text-blue-400 font-semibold">${item.torneioMataMata || '-'}</td>
-            <td class="py-3.5 px-3 text-center text-slate-300 font-mono">${item.pontosGrupos || 0}</td>
-            <td class="py-3.5 px-3 text-center text-slate-300 font-mono">${item.pontosMataMata || 0}</td>
-            <td class="py-3.5 px-4 text-center font-black text-amber-400 font-mono text-sm">${item.pontosTotais || 0}</td>
-          `;
-          tbody.appendChild(tr);
+        // SEPARAÇÃO EM DUAS LISTAS: RAINHA DA PRAIA E RAINHA DA PISCINA
+        var listaPraia = res.ranking.filter(function(i) {
+          return String(i.torneioMataMata || '').toLowerCase().indexOf('piscina') === -1;
         });
+
+        var listaPiscina = res.ranking.filter(function(i) {
+          return String(i.torneioMataMata || '').toLowerCase().indexOf('piscina') !== -1;
+        });
+
+        function renderizarGrupoRanking(titulo, lista, corBg) {
+          if (lista.length === 0) return;
+
+          // Cabeçalho da Chave
+          var trTitulo = document.createElement('tr');
+          trTitulo.className = corBg + " border-y border-[#2a364f]";
+          trTitulo.innerHTML = `
+            <td colspan="7" class="py-2.5 px-4 font-black text-xs uppercase tracking-widest text-amber-400">
+              👑 ${titulo} (${lista.length} ATLETAS)
+            </td>
+          `;
+          tbody.appendChild(trTitulo);
+
+          // Linhas das Atletas
+          lista.sort(function(a, b) { return (b.pontosTotais || 0) - (a.pontosTotais || 0); });
+
+          lista.forEach(function(item, idx) {
+            var tr = document.createElement('tr');
+            tr.className = "hover:bg-[#1a2336]/40 transition-colors";
+            var medalha = idx === 0 ? "🥇 " : idx === 1 ? "🥈 " : idx === 2 ? "🥉 " : "";
+
+            tr.innerHTML = `
+              <td class="py-3 px-3 text-center font-bold ${idx < 3 ? 'text-amber-400' : 'text-slate-400'}">${idx + 1}</td>
+              <td class="py-3 px-4 font-bold text-white">${medalha}${item.nome || ''} <span class="block text-[10px] text-slate-500 font-normal">ID: ${item.id || '-'}</span></td>
+              <td class="py-3 px-3 text-center text-slate-300">${item.categoria || '-'}</td>
+              <td class="py-3 px-3 text-center text-blue-400 font-semibold">${item.torneioMataMata || 'Fase de Grupos'}</td>
+              <td class="py-3 px-3 text-center text-slate-300 font-mono">${item.pontosGrupos || 0}</td>
+              <td class="py-3 px-3 text-center text-slate-300 font-mono">${item.pontosMataMata || 0}</td>
+              <td class="py-3 px-4 text-center font-black text-amber-400 font-mono text-sm">${item.pontosTotais || 0}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+
+        // Renderiza primeiro a Rainha da Praia e depois a Rainha da Piscina
+        renderizarGrupoRanking("RAINHA DA PRAIA (CHAVE PRINCIPAL)", listaPraia, "bg-[#1e293d]");
+        renderizarGrupoRanking("RAINHA DA PISCINA (CHAVE DE CONSOLAÇÃO)", listaPiscina, "bg-[#1a2336]");
+
       });
 
     } else {
@@ -322,33 +351,36 @@
           var isFinal = c.fase && c.fase.toUpperCase().indexOf('FINAL') !== -1 && c.fase.toUpperCase().indexOf('SEMI') === -1;
           var corpoConfronto = "";
 
-          if (modo === '2' || (c.atleta3 && c.atleta4 && (c.pontos3 !== undefined && c.pontos3 !== ""))) {
-            // MODO INDIVIDUAL: 4 CARTÕES NEUTROS COM OS PONTOS DE CADA UMA
+          // FORÇA MODO INDIVIDUAL QUANDO MODO FOR '2' OU HOUVER 4 ATLETAS
+          var eModoIndividual = (modo === '2') || (c.atleta3 && c.atleta4 && (c.pontos3 !== undefined && c.pontos3 !== ""));
+
+          if (eModoIndividual) {
+            // EXIBIÇÃO INDIVIDUAL: 4 QUADROS NEUTROS COM AS PONTUAÇÕES DE CADA UMA
             corpoConfronto = `
               <div class="space-y-2 pt-1">
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">Pontuação Individual das Atletas</span>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1 shadow-md">
                     <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta1 || ''}">${c.atleta1 || 'Atleta 1'}</span>
-                    <p class="text-xl font-black font-mono text-amber-400">${c.pontos1 !== "" && c.pontos1 !== undefined ? c.pontos1 : 0}</p>
+                    <p class="text-xl font-black font-mono text-amber-400">${(c.pontos1 !== "" && c.pontos1 !== undefined) ? c.pontos1 : 0}</p>
                   </div>
                   <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1 shadow-md">
                     <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta2 || ''}">${c.atleta2 || 'Atleta 2'}</span>
-                    <p class="text-xl font-black font-mono text-amber-400">${c.pontos2 !== "" && c.pontos2 !== undefined ? c.pontos2 : 0}</p>
+                    <p class="text-xl font-black font-mono text-amber-400">${(c.pontos2 !== "" && c.pontos2 !== undefined) ? c.pontos2 : 0}</p>
                   </div>
                   <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1 shadow-md">
                     <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta3 || ''}">${c.atleta3 || 'Atleta 3'}</span>
-                    <p class="text-xl font-black font-mono text-amber-400">${c.pontos3 !== "" && c.pontos3 !== undefined ? c.pontos3 : 0}</p>
+                    <p class="text-xl font-black font-mono text-amber-400">${(c.pontos3 !== "" && c.pontos3 !== undefined) ? c.pontos3 : 0}</p>
                   </div>
                   <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1 shadow-md">
                     <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta4 || ''}">${c.atleta4 || 'Atleta 4'}</span>
-                    <p class="text-xl font-black font-mono text-amber-400">${c.pontos4 !== "" && c.pontos4 !== undefined ? c.pontos4 : 0}</p>
+                    <p class="text-xl font-black font-mono text-amber-400">${(c.pontos4 !== "" && c.pontos4 !== undefined) ? c.pontos4 : 0}</p>
                   </div>
                 </div>
               </div>
             `;
           } else {
-            // MODO DUPLAS FIXAS: QUADRA VERMELHA VS AZUL
+            // EXIBIÇÃO DUPLAS FIXAS: QUADRA VERMELHA VS AZUL
             var nomeDuplaA = (c.atleta1 && c.atleta2) ? (c.atleta1 + ' / ' + c.atleta2) : (c.atleta1 || 'Dupla A');
             var nomeDuplaB = (c.atleta3 && c.atleta4) ? (c.atleta3 + ' / ' + c.atleta4) : (c.atleta3 || 'Dupla B');
 
@@ -371,7 +403,7 @@
           var vitoriaOuClassificacao = "";
           if (c.classificadas) {
             if (isFinal) {
-              var tituloCampeao = (modo === '2') ? "🏆 RAINHA DO TORNEIO (CAMPEÃ INDIVIDUAL) 🏆" : "🏆 CAMPEÃS DO TORNEIO 🏆";
+              var tituloCampeao = eModoIndividual ? "🏆 RAINHA DO TORNEIO (CAMPEÃ INDIVIDUAL) 🏆" : "🏆 CAMPEÃS DO TORNEIO 🏆";
               vitoriaOuClassificacao = `
                 <div class="bg-amber-500/10 border border-amber-500/40 p-3.5 rounded-xl text-center space-y-1 mt-3 shadow-lg">
                   <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest block">${tituloCampeao}</span>
