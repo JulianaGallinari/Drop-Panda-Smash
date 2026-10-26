@@ -6,7 +6,7 @@
   <title>Drop & Smash - Painel do Juiz</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-[#080d1a] text-slate-100 min-h-screen pb-12">
+<body class="bg-[#080d1a] text-slate-100 min-h-screen pb-12 font-sans">
 
   <!-- BARRA SUPERIOR -->
   <header class="bg-[#111827] border-b border-[#1e293d] sticky top-0 z-50 shadow-md">
@@ -135,16 +135,16 @@
 
     return fetch(SCRIPT_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8'
-      },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(dados)
     })
     .then(function(resposta) {
-      if (!resposta.ok) {
-        throw new Error("Erro HTTP: " + resposta.status);
-      }
+      if (!resposta.ok) throw new Error("Erro HTTP: " + resposta.status);
       return resposta.json();
+    })
+    .catch(function(err) {
+      console.error("Erro na API:", err);
+      return { sucesso: false, erro: err.message };
     });
   }
 
@@ -155,8 +155,12 @@
       return;
     }
 
-    juizAtual = JSON.parse(sessao);
-    document.getElementById('lblJuiz').textContent = "Juiz: " + (juizAtual.nome || "Autenticado");
+    try {
+      juizAtual = JSON.parse(sessao);
+      document.getElementById('lblJuiz').textContent = "Juiz: " + (juizAtual.nome || "Autenticado");
+    } catch(e) {
+      document.getElementById('lblJuiz').textContent = "Juiz: Autenticado";
+    }
 
     carregarListaGrupos();
   });
@@ -202,15 +206,22 @@
     }
   }
 
-  // LÓGICA DA 1ª FASE (GRUPOS)
   function carregarListaGrupos() {
     chamarAPI('listarGrupos')
       .then(function(grupos) {
-        gruposCarregados = grupos || [];
         var select = document.getElementById('selectGrupo');
+        
+        if (Array.isArray(grupos)) {
+          gruposCarregados = grupos;
+        } else if (grupos && grupos.sucesso && grupos.dados) {
+          gruposCarregados = grupos.dados;
+        } else {
+          gruposCarregados = [];
+        }
+
         select.innerHTML = '<option value="">-- Selecione um grupo --</option>';
 
-        if (gruposCarregados.length === 0) {
+        if (!gruposCarregados || gruposCarregados.length === 0) {
           select.innerHTML = '<option value="">Nenhum grupo encontrado</option>';
           return;
         }
@@ -218,7 +229,7 @@
         gruposCarregados.forEach(function(g) {
           var opt = document.createElement('option');
           opt.value = g.idGrupo;
-          opt.textContent = g.idGrupo + " (" + g.status + ")";
+          opt.textContent = g.idGrupo + " (" + (g.status || 'Pendente') + ")";
           select.appendChild(opt);
         });
       })
@@ -253,7 +264,7 @@
     }
 
     containerAtletas.innerHTML = "";
-    grupo.atletas.forEach(function(atleta, index) {
+    (grupo.atletas || []).forEach(function(atleta, index) {
       var div = document.createElement('div');
       div.className = "flex items-center justify-between bg-[#1a2336] p-3.5 rounded-xl border border-[#2a364f]";
       div.innerHTML = `
@@ -277,7 +288,6 @@
   function salvarPontosGrupo(e) {
     e.preventDefault();
     
-    var modoAtivo = document.getElementById('seletorModo').value;
     var idGrupo = document.getElementById('selectGrupo').value;
     var inputs = document.querySelectorAll('#containerAtletas input');
     var btnSalvar = document.getElementById('btnSalvarGrupo');
@@ -314,7 +324,7 @@
       spinner.classList.add('hidden');
 
       if (res && res.sucesso) {
-        exibirAlerta("Pontuação registrada com sucesso no grupo e no ranking individual!", "sucesso");
+        exibirAlerta("Pontuação registrada com sucesso!", "sucesso");
         carregarListaGrupos();
       } else {
         exibirAlerta((res && res.erro) ? res.erro : "Erro ao salvar.", "erro");
@@ -328,7 +338,6 @@
     });
   }
 
-  // LÓGICA DO MATA-MATA (ATUALIZADA)
   function carregarConfrontosMataMata() {
     var abaNome = (abaAtiva === 'praia') ? 'rainha_praia' : 'rainha_piscina';
     var modoAtivo = document.getElementById('seletorModo').value;
@@ -336,9 +345,17 @@
     container.innerHTML = '<p class="text-xs text-slate-400 text-center py-8">Carregando chave de confrontos...</p>';
 
     chamarAPI('listarMataMata', { abaNome: abaNome })
-      .then(function(confrontos) {
+      .then(function(res) {
         container.innerHTML = "";
-        confrontosMataMataCarregados = confrontos || [];
+        
+        var confrontos = [];
+        if (Array.isArray(res)) {
+          confrontos = res;
+        } else if (res && res.confrontos) {
+          confrontos = res.confrontos;
+        }
+
+        confrontosMataMataCarregados = confrontos;
 
         if (!confrontos || confrontos.length === 0) {
           container.innerHTML = '<p class="text-xs text-slate-400 text-center py-8">O mata-mata ainda não foi gerado. Conclua todos os grupos da 1ª Fase primeiro.</p>';
@@ -356,21 +373,18 @@
 
           var inputsHTML = "";
 
-          // MODO DUPLA FIXA NO DROP-DOWN
           if (modoAtivo === 'dupla') {
             var nomeDuplaA = (c.atleta1 && c.atleta2) ? (c.atleta1 + ' / ' + c.atleta2) : (c.atleta1 || 'Dupla A');
             var nomeDuplaB = (c.atleta3 && c.atleta4) ? (c.atleta3 + ' / ' + c.atleta4) : (c.atleta3 || 'Dupla B');
 
             inputsHTML = `
               <div class="grid grid-cols-2 gap-3">
-                <!-- QUADRA VERMELHA (DUPLA A) -->
                 <div class="bg-red-950/30 border border-red-500/30 p-3 rounded-xl text-center space-y-2">
                   <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider block">Dupla A (Quadra Vermelha)</span>
                   <p class="text-xs font-bold text-white truncate" title="${nomeDuplaA}">${nomeDuplaA}</p>
                   <input type="number" id="p1_${c.idConfronto}" value="${c.pontos1 || ''}" placeholder="0" class="w-20 bg-[#0d1527] border border-red-500/50 rounded-lg p-2 text-center text-sm font-bold text-amber-400 mx-auto block focus:outline-none focus:ring-1 focus:ring-red-400" />
                 </div>
 
-                <!-- QUADRA AZUL (DUPLA B) -->
                 <div class="bg-blue-950/30 border border-blue-500/30 p-3 rounded-xl text-center space-y-2">
                   <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Dupla B (Quadra Azul)</span>
                   <p class="text-xs font-bold text-white truncate" title="${nomeDuplaB}">${nomeDuplaB}</p>
@@ -379,7 +393,6 @@
               </div>
             `;
           } else {
-            // MODO INDIVIDUAL NO DROP-DOWN (FORMATO NEUTRO COM 4 CORES IGUAIS)
             inputsHTML = `
               <div class="space-y-2">
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">Pontuação Individual das Jogadoras</span>
@@ -455,36 +468,10 @@
 
     exibirAlerta("Salvando confronto...", "info");
 
-    // Chama o backend, que já cuida de atualizar a chave e creditar os pontos exatos de cada jogadora
     chamarAPI('salvarMataMata', { abaNome: abaNome, idConfronto: idConfronto, pontosArray: pontosArray })
     .then(function(res) {
       if (res && res.sucesso) {
-        exibirAlerta("Placar do mata-mata e ranking individual salvos com sucesso!", "sucesso");
-        carregarConfrontosMataMata();
-      } else {
-        exibirAlerta((res && res.erro) ? res.erro : "Erro ao salvar placar.", "erro");
-      }
-    })
-    .catch(function(err) {
-      exibirAlerta("Erro de conexão: " + err.message, "erro");
-    });
-  }
-    exibirAlerta("Salvando confronto...", "info");
-
-    var atletasNoJogo = [confronto.atleta1, confronto.atleta2, confronto.atleta3, confronto.atleta4].filter(Boolean);
-    var maiorPontoMataMata = Math.max.apply(null, pontosArray);
-
-    chamarAPI('salvarPontosIndividual', {
-      atletas: atletasNoJogo,
-      pontos: maiorPontoMataMata,
-      fase: 'matamata'
-    })
-    .then(function() {
-      return chamarAPI('salvarMataMata', { abaNome: abaNome, idConfronto: idConfronto, pontosArray: pontosArray });
-    })
-    .then(function(res) {
-      if (res && res.sucesso) {
-        exibirAlerta("Placar do mata-mata e ranking individual salvos com sucesso!", "sucesso");
+        exibirAlerta("Placar do mata-mata salvo com sucesso!", "sucesso");
         carregarConfrontosMataMata();
       } else {
         exibirAlerta((res && res.erro) ? res.erro : "Erro ao salvar placar.", "erro");
