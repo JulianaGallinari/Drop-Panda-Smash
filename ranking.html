@@ -283,21 +283,26 @@
           return;
         }
 
-        if (!res.ranking || res.ranking.length === 0) {
+        var lista = res.duplas || res.ranking || [];
+
+        if (lista.length === 0) {
           tbody.innerHTML = '<tr><td colspan="3" class="py-10 text-center text-slate-400 font-medium">Nenhum dado registrado para duplas.</td></tr>';
           return;
         }
 
         tbody.innerHTML = "";
-        res.ranking.forEach(function(item, idx) {
+        lista.forEach(function(item, idx) {
           var tr = document.createElement('tr');
           tr.className = "hover:bg-[#1a2336]/40 transition-colors";
           var medalha = idx === 0 ? "🥇 " : idx === 1 ? "🥈 " : idx === 2 ? "🥉 " : "";
 
+          var nomeDupla = item.dupla || item.nome || '';
+          var pontos = (item.pontos !== undefined) ? item.pontos : (item.pontosTotais || 0);
+
           tr.innerHTML = `
             <td class="py-3.5 px-3 text-center font-bold ${idx < 3 ? 'text-amber-400' : 'text-slate-400'}">${idx + 1}</td>
-            <td class="py-3.5 px-4 font-bold text-white">${medalha}${item.nome || ''}</td>
-            <td class="py-3.5 px-4 text-center font-black text-amber-400 font-mono text-sm">${item.pontosTotais || 0}</td>
+            <td class="py-3.5 px-4 font-bold text-white">${medalha}${nomeDupla}</td>
+            <td class="py-3.5 px-4 text-center font-black text-amber-400 font-mono text-sm">${pontos}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -437,6 +442,7 @@
         container.innerHTML = '<p class="text-xs text-rose-400 text-center py-10">Erro de conexão: ' + err.message + '</p>';
       });
   }
-  </script>
+</script>
+  
 </body>
 </html>
