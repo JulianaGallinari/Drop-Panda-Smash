@@ -125,7 +125,7 @@
     })
     .then(function(res) { return res.json(); })
     .catch(function(err) {
-      console.error("Erro na comunicação com a API:", err);
+      console.error("Erro API:", err);
       return { sucesso: false, erro: "Falha na conexão com o servidor." };
     });
   }
@@ -145,22 +145,25 @@
     var secMataMata = document.getElementById('secMataMata');
 
     [btnRanking, btnPraia, btnPiscina].forEach(function(btn) {
-      btn.className = "flex-1 py-3 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all text-slate-400 hover:text-white";
+      if (btn) btn.className = "flex-1 py-3 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all text-slate-400 hover:text-white";
     });
 
     if (aba === 'ranking') {
-      btnRanking.className = "flex-1 py-3 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all bg-[#2563eb] text-white shadow";
-      secRanking.classList.remove('hidden');
-      secMataMata.classList.add('hidden');
+      if (btnRanking) btnRanking.className = "flex-1 py-3 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all bg-[#2563eb] text-white shadow";
+      if (secRanking) secRanking.classList.remove('hidden');
+      if (secMataMata) secMataMata.classList.add('hidden');
     } else {
       var btnAlvo = (aba === 'praia') ? btnPraia : btnPiscina;
-      btnAlvo.className = "flex-1 py-3 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all bg-[#2563eb] text-white shadow";
-      secRanking.classList.add('hidden');
-      secMataMata.classList.remove('hidden');
+      if (btnAlvo) btnAlvo.className = "flex-1 py-3 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all bg-[#2563eb] text-white shadow";
+      if (secRanking) secRanking.classList.add('hidden');
+      if (secMataMata) secMataMata.classList.remove('hidden');
       
-      document.getElementById('tituloMataMata').textContent = (aba === 'praia') 
-        ? "Rainha da Praia - Chave Principal" 
-        : "Rainha da Piscina - Chave de Consolação";
+      var tit = document.getElementById('tituloMataMata');
+      if (tit) {
+        tit.textContent = (aba === 'praia') 
+          ? "Rainha da Praia - Chave Principal" 
+          : "Rainha da Piscina - Chave de Consolação";
+      }
     }
     carregarDadosAtuais();
   }
@@ -171,11 +174,11 @@
     var btnDup = document.getElementById('subBtnDup');
 
     if (tipo === 'individual') {
-      btnInd.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg bg-[#2563eb] text-white transition-all";
-      btnDup.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white transition-all";
+      if (btnInd) btnInd.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg bg-[#2563eb] text-white transition-all";
+      if (btnDup) btnDup.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white transition-all";
     } else {
-      btnDup.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg bg-[#2563eb] text-white transition-all";
-      btnInd.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white transition-all";
+      if (btnDup) btnDup.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg bg-[#2563eb] text-white transition-all";
+      if (btnInd) btnInd.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white transition-all";
     }
     carregarRankingGeral();
   }
@@ -191,6 +194,7 @@
   function carregarRankingGeral() {
     var thead = document.getElementById('thHeadRanking');
     var tbody = document.getElementById('tbRanking');
+    if (!thead || !tbody) return;
 
     if (tipoRankingAtivo === 'individual') {
       thead.innerHTML = `
@@ -198,6 +202,7 @@
           <th class="py-3.5 px-3 text-center w-10">#</th>
           <th class="py-3.5 px-4">Atleta</th>
           <th class="py-3.5 px-3 text-center">Cat.</th>
+          <th class="py-3.5 px-3 text-center">Chave</th>
           <th class="py-3.5 px-3 text-center">Grupos</th>
           <th class="py-3.5 px-3 text-center">Mata-Mata</th>
           <th class="py-3.5 px-4 text-center font-bold text-amber-400">Total</th>
@@ -205,16 +210,13 @@
       `;
 
       chamarAPI('obterRankingIndividual').then(function(res) {
-        console.log("Resposta API Ranking Individual:", res);
-        
-        if (!res || !res.sucesso) {
-          var mensagemErro = (res && res.erro) ? res.erro : "Erro ao carregar ranking.";
-          tbody.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-rose-400 font-medium">' + mensagemErro + '</td></tr>';
+        if (!res || res.sucesso === false) {
+          tbody.innerHTML = '<tr><td colspan="7" class="py-10 text-center text-rose-400 font-medium">' + ((res && res.erro) ? res.erro : 'Erro ao carregar ranking.') + '</td></tr>';
           return;
         }
 
         if (!res.ranking || res.ranking.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-slate-400 font-medium">Nenhum dado registrado no ranking individual.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" class="py-10 text-center text-slate-400 font-medium">Nenhum dado registrado no ranking individual.</td></tr>';
           return;
         }
 
@@ -226,8 +228,9 @@
 
           tr.innerHTML = `
             <td class="py-3.5 px-3 text-center font-bold ${idx < 3 ? 'text-amber-400' : 'text-slate-400'}">${idx + 1}</td>
-            <td class="py-3.5 px-4 font-bold text-white">${medalha}${item.nome} <span class="block text-[10px] text-slate-500 font-normal">ID: ${item.id}</span></td>
+            <td class="py-3.5 px-4 font-bold text-white">${medalha}${item.nome || ''} <span class="block text-[10px] text-slate-500 font-normal">ID: ${item.id || '-'}</span></td>
             <td class="py-3.5 px-3 text-center text-slate-300">${item.categoria || '-'}</td>
+            <td class="py-3.5 px-3 text-center text-blue-400 font-semibold">${item.torneioMataMata || '-'}</td>
             <td class="py-3.5 px-3 text-center text-slate-300 font-mono">${item.pontosGrupos || 0}</td>
             <td class="py-3.5 px-3 text-center text-slate-300 font-mono">${item.pontosMataMata || 0}</td>
             <td class="py-3.5 px-4 text-center font-black text-amber-400 font-mono text-sm">${item.pontosTotais || 0}</td>
@@ -246,9 +249,8 @@
       `;
 
       chamarAPI('obterRankingDuplas').then(function(res) {
-        if (!res || !res.sucesso) {
-          var mensagemErro = (res && res.erro) ? res.erro : "Erro ao carregar ranking de duplas.";
-          tbody.innerHTML = '<tr><td colspan="3" class="py-10 text-center text-rose-400 font-medium">' + mensagemErro + '</td></tr>';
+        if (!res || res.sucesso === false) {
+          tbody.innerHTML = '<tr><td colspan="3" class="py-10 text-center text-rose-400 font-medium">' + ((res && res.erro) ? res.erro : 'Erro ao carregar ranking de duplas.') + '</td></tr>';
           return;
         }
 
@@ -265,7 +267,7 @@
 
           tr.innerHTML = `
             <td class="py-3.5 px-3 text-center font-bold ${idx < 3 ? 'text-amber-400' : 'text-slate-400'}">${idx + 1}</td>
-            <td class="py-3.5 px-4 font-bold text-white">${medalha}${item.nome}</td>
+            <td class="py-3.5 px-4 font-bold text-white">${medalha}${item.nome || ''}</td>
             <td class="py-3.5 px-4 text-center font-black text-amber-400 font-mono text-sm">${item.pontosTotais || 0}</td>
           `;
           tbody.appendChild(tr);
@@ -276,13 +278,35 @@
 
   function carregarChaveMataMata(abaNome) {
     var container = document.getElementById('containerMataMata');
+    if (!container) return;
     container.innerHTML = '<p class="text-xs text-slate-400 text-center py-10">Carregando chave de confrontos...</p>';
 
     chamarAPI('listarMataMata', { abaNome: abaNome })
-      .then(function(confrontos) {
+      .then(function(res) {
         container.innerHTML = "";
+        
+        if (!res) {
+          container.innerHTML = '<p class="text-xs text-rose-400 text-center py-10">Sem resposta do servidor.</p>';
+          return;
+        }
+
+        if (res.sucesso === false) {
+          container.innerHTML = '<p class="text-xs text-rose-400 text-center py-10">Erro: ' + (res.erro || 'Falha ao buscar chave.') + '</p>';
+          return;
+        }
+
+        var confrontos = [];
+        var modo = '2';
+
+        if (Array.isArray(res)) {
+          confrontos = res;
+        } else if (res && res.confrontos) {
+          confrontos = res.confrontos;
+          modo = String(res.modo || '2');
+        }
+
         if (!confrontos || confrontos.length === 0) {
-          container.innerHTML = '<p class="text-xs text-slate-400 text-center py-10">Chave ainda não gerada.</p>';
+          container.innerHTML = '<p class="text-xs text-slate-400 text-center py-10">Chave ainda não gerada para esta categoria.</p>';
           return;
         }
 
@@ -290,22 +314,67 @@
           var card = document.createElement('div');
           card.className = "bg-[#111827] p-5 rounded-2xl border border-[#1e293d] space-y-3 shadow-xl";
 
-          var isConcluido = (c.status === 'Concluído');
+          var isConcluido = (c.status === 'Concluído' || c.status === 'Finalizado');
           var statusBadge = isConcluido 
             ? `<span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">Finalizado</span>`
             : `<span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider animate-pulse">Em Andamento</span>`;
 
-          var nomeDuplaA = (c.atleta1 && c.atleta2) ? (c.atleta1 + ' / ' + c.atleta2) : (c.atleta1 || 'Dupla A');
-          var nomeDuplaB = (c.atleta3 && c.atleta4) ? (c.atleta3 + ' / ' + c.atleta4) : (c.atleta3 || 'Dupla B');
-
           var isFinal = c.fase && c.fase.toUpperCase().indexOf('FINAL') !== -1 && c.fase.toUpperCase().indexOf('SEMI') === -1;
+          var corpoConfronto = "";
+
+          if (modo === '2' || (c.atleta3 && c.atleta4 && (c.pontos3 !== undefined && c.pontos3 !== ""))) {
+            // MODO INDIVIDUAL: 4 CARTÕES NEUTROS COM OS PONTOS DE CADA UMA
+            corpoConfronto = `
+              <div class="space-y-2 pt-1">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">Pontuação Individual das Atletas</span>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1 shadow-md">
+                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta1 || ''}">${c.atleta1 || 'Atleta 1'}</span>
+                    <p class="text-xl font-black font-mono text-amber-400">${c.pontos1 !== "" && c.pontos1 !== undefined ? c.pontos1 : 0}</p>
+                  </div>
+                  <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1 shadow-md">
+                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta2 || ''}">${c.atleta2 || 'Atleta 2'}</span>
+                    <p class="text-xl font-black font-mono text-amber-400">${c.pontos2 !== "" && c.pontos2 !== undefined ? c.pontos2 : 0}</p>
+                  </div>
+                  <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1 shadow-md">
+                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta3 || ''}">${c.atleta3 || 'Atleta 3'}</span>
+                    <p class="text-xl font-black font-mono text-amber-400">${c.pontos3 !== "" && c.pontos3 !== undefined ? c.pontos3 : 0}</p>
+                  </div>
+                  <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1 shadow-md">
+                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta4 || ''}">${c.atleta4 || 'Atleta 4'}</span>
+                    <p class="text-xl font-black font-mono text-amber-400">${c.pontos4 !== "" && c.pontos4 !== undefined ? c.pontos4 : 0}</p>
+                  </div>
+                </div>
+              </div>
+            `;
+          } else {
+            // MODO DUPLAS FIXAS: QUADRA VERMELHA VS AZUL
+            var nomeDuplaA = (c.atleta1 && c.atleta2) ? (c.atleta1 + ' / ' + c.atleta2) : (c.atleta1 || 'Dupla A');
+            var nomeDuplaB = (c.atleta3 && c.atleta4) ? (c.atleta3 + ' / ' + c.atleta4) : (c.atleta3 || 'Dupla B');
+
+            corpoConfronto = `
+              <div class="grid grid-cols-2 gap-3 pt-1">
+                <div class="bg-red-950/20 border border-red-500/30 p-3.5 rounded-xl text-center space-y-1">
+                  <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider block">Dupla A</span>
+                  <p class="text-xs font-bold text-white truncate" title="${nomeDuplaA}">${nomeDuplaA}</p>
+                  <p class="text-2xl font-black font-mono text-amber-400 pt-1">${c.pontos1 || 0}</p>
+                </div>
+                <div class="bg-blue-950/20 border border-blue-500/30 p-3.5 rounded-xl text-center space-y-1">
+                  <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Dupla B</span>
+                  <p class="text-xs font-bold text-white truncate" title="${nomeDuplaB}">${nomeDuplaB}</p>
+                  <p class="text-2xl font-black font-mono text-amber-400 pt-1">${c.pontos2 || 0}</p>
+                </div>
+              </div>
+            `;
+          }
 
           var vitoriaOuClassificacao = "";
           if (c.classificadas) {
             if (isFinal) {
+              var tituloCampeao = (modo === '2') ? "🏆 RAINHA DO TORNEIO (CAMPEÃ INDIVIDUAL) 🏆" : "🏆 CAMPEÃS DO TORNEIO 🏆";
               vitoriaOuClassificacao = `
                 <div class="bg-amber-500/10 border border-amber-500/40 p-3.5 rounded-xl text-center space-y-1 mt-3 shadow-lg">
-                  <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest block">🏆 CAMPEÃ(S) DO TORNEIO 🏆</span>
+                  <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest block">${tituloCampeao}</span>
                   <p class="text-sm font-extrabold text-amber-300">${c.classificadas}</p>
                 </div>
               `;
@@ -319,31 +388,21 @@
           card.innerHTML = `
             <div class="flex items-center justify-between border-b border-[#1e293d] pb-2.5">
               <div>
-                <span class="text-xs font-black text-blue-400 uppercase tracking-wider">${c.fase}</span>
+                <span class="text-xs font-black text-blue-400 uppercase tracking-wider">${c.fase || 'Eliminatória'}</span>
                 <span class="text-[10px] text-slate-500 ml-2">(${c.idConfronto})</span>
               </div>
               ${statusBadge}
             </div>
 
-            <div class="grid grid-cols-2 gap-3 pt-1">
-              <div class="bg-red-950/20 border border-red-500/30 p-3.5 rounded-xl text-center space-y-1">
-                <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider block">Dupla A</span>
-                <p class="text-xs font-bold text-white truncate" title="${nomeDuplaA}">${nomeDuplaA}</p>
-                <p class="text-2xl font-black font-mono text-amber-400 pt-1">${c.pontos1 || 0}</p>
-              </div>
-
-              <div class="bg-blue-950/20 border border-blue-500/30 p-3.5 rounded-xl text-center space-y-1">
-                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Dupla B</span>
-                <p class="text-xs font-bold text-white truncate" title="${nomeDuplaB}">${nomeDuplaB}</p>
-                <p class="text-2xl font-black font-mono text-amber-400 pt-1">${c.pontos2 || 0}</p>
-              </div>
-            </div>
-
+            ${corpoConfronto}
             ${vitoriaOuClassificacao}
           `;
 
           container.appendChild(card);
         });
+      })
+      .catch(function(err) {
+        container.innerHTML = '<p class="text-xs text-rose-400 text-center py-10">Erro de conexão: ' + err.message + '</p>';
       });
   }
   </script>
