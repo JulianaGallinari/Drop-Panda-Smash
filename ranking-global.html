@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ranking Global</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-6 font-sans">
+
+  <div class="max-w-5xl mx-auto space-y-4">
+    <!-- CABEÇALHO DA TELA -->
+    <div class="bg-slate-800/80 backdrop-blur-sm border border-slate-700/60 rounded-2xl p-5 flex items-center justify-between shadow-xl">
+      <div class="flex items-center gap-4">
+        <!-- BOTÃO DE SAIR / VOLTAR -->
+        <a href="index.html" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 border border-slate-600 shadow cursor-pointer">
+          ⬅️ Sair
+        </a>
+        <div>
+          <h1 class="text-2xl font-bold text-amber-400 flex items-center gap-2">
+            🌐 Ranking Global Acumulado
+          </h1>
+          <p class="text-xs text-slate-400 mt-1">Pontuação consolidada de todas as etapas do torneio</p>
+        </div>
+      </div>
+      <button onclick="carregarRankingGlobal()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 border border-slate-600 shadow cursor-pointer">
+        🔄 Atualizar
+      </button>
+    </div>
+
+    <!-- TABELA DE CLASSIFICAÇÃO -->
+    <div class="bg-slate-800/80 backdrop-blur-sm border border-slate-700/60 rounded-2xl shadow-xl overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-900/60 border-b border-slate-700/80 text-slate-400 text-xs uppercase tracking-wider font-semibold">
+              <th class="p-4 text-center w-16">Pos</th>
+              <th class="p-4">Atleta</th>
+              <th class="p-4">Cat. Atual</th>
+              <th class="p-4 text-center">Etapas</th>
+              <th class="p-4 text-center">Última Etapa</th>
+              <th class="p-4 text-right">Pts Totais</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaRankingGlobal" class="divide-y divide-slate-700/50 text-sm">
+            <tr>
+              <td colspan="6" class="text-center p-8 text-slate-400 animate-pulse">
+                ⏳ Carregando dados do Ranking Global...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      carregarRankingGlobal();
+    });
+
+    function carregarRankingGlobal() {
+      var tbody = document.getElementById('tabelaRankingGlobal');
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-400 animate-pulse">⏳ Carregando...</td></tr>';
+
+      google.script.run
+        .withSuccessHandler(function(resposta) {
+          if (!resposta || !resposta.sucesso) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-red-400 font-semibold">❌ Erro: ' + (resposta ? resposta.erro : 'Falha ao carregar dados.') + '</td></tr>';
+            return;
+          }
+
+          var lista = resposta.ranking;
+          if (!lista || lista.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-400">Nenhum atleta cadastrado no Ranking Global.</td></tr>';
+            return;
+          }
+
+          var html = '';
+          for (var i = 0; i < lista.length; i++) {
+            var item = lista[i];
+            var posicao = i + 1;
+            
+            var medalhaOuPos = '#' + posicao;
+            var classePos = 'text-slate-400';
+            
+            if (posicao === 1) {
+              medalhaOuPos = '🥇 1º';
+              classePos = 'text-amber-400 font-extrabold text-base';
+            } else if (posicao === 2) {
+              medalhaOuPos = '🥈 2º';
+              classePos = 'text-slate-300 font-bold text-base';
+            } else if (posicao === 3) {
+              medalhaOuPos = '🥉 3º';
+              classePos = 'text-amber-600 font-bold text-base';
+            }
+
+            html += '<tr class="hover:bg-slate-700/40 transition-colors">';
+            html += '<td class="p-4 text-center font-bold ' + classePos + '">' + medalhaOuPos + '</td>';
+            html += '<td class="p-4 font-semibold text-slate-100">' + item.nome + '</td>';
+            html += '<td class="p-4"><span class="inline-block bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-lg text-xs font-medium">' + (item.categoriaAtual || '-') + '</span></td>';
+            html += '<td class="p-4 text-center font-medium text-slate-300">' + item.etapasJogadas + '</td>';
+            html += '<td class="p-4 text-center text-xs text-slate-400">' + (item.ultimaEtapa || '-') + '</td>';
+            html += '<td class="p-4 text-right font-black text-emerald-400 text-base">' + item.pontosTotais + '</td>';
+            html += '</tr>';
+          }
+
+          tbody.innerHTML = html;
+        })
+        .withFailureHandler(function(err) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-red-400 font-semibold">❌ Erro ao comunicar com o Apps Script: ' + err.message + '</td></tr>';
+        })
+        .obterRankingGlobal();
+    }
+  </script>
+</body>
+</html>
