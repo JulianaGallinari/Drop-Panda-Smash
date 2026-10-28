@@ -8,8 +8,6 @@
   <!-- ÍCONE DA APLICAÇÃO (IMGBB) -->
   <link rel="icon" type="image/png" sizes="192x192" href="https://i.postimg.cc/85V0LLWZ/icone-trofeu.png">
   <link rel="apple-touch-icon" href="https://i.postimg.cc/85V0LLWZ/icone-trofeu.png">
-  
-  
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-6 font-sans">
 
@@ -60,6 +58,8 @@
   </div>
 
   <script>
+    var URL_WEB_APP = "https://script.google.com/macros/s/AKfycbz8ozRKqU-Hwoc5CeqPsdGvs90sN6CISmpcWDV0hZWCKG74rHU-ghxhZwC8efymA62oSA/exec";
+
     document.addEventListener("DOMContentLoaded", function() {
       carregarRankingGlobal();
     });
@@ -68,8 +68,11 @@
       var tbody = document.getElementById('tabelaRankingGlobal');
       tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-400 animate-pulse">⏳ Carregando...</td></tr>';
 
-      google.script.run
-        .withSuccessHandler(function(resposta) {
+      fetch(URL_WEB_APP + "?acao=obterRankingGlobal")
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(resposta) {
           if (!resposta || !resposta.sucesso) {
             tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-red-400 font-semibold">❌ Erro: ' + (resposta ? resposta.erro : 'Falha ao carregar dados.') + '</td></tr>';
             return;
@@ -112,10 +115,9 @@
 
           tbody.innerHTML = html;
         })
-        .withFailureHandler(function(err) {
-          tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-red-400 font-semibold">❌ Erro ao comunicar com o Apps Script: ' + err.message + '</td></tr>';
-        })
-        .obterRankingGlobal();
+        .catch(function(err) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-red-400 font-semibold">❌ Erro ao conectar com o servidor: ' + err.message + '</td></tr>';
+        });
     }
   </script>
 </body>
