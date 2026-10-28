@@ -407,6 +407,7 @@
           var inputsHTML = "";
 
           if (modoAtivo === 'dupla') {
+            // MODO DUPLA FIXA: 1 JOGO (DUPLA A vs DUPLA B)
             var nomeDuplaA = (c.atleta1 && c.atleta2) ? (c.atleta1 + ' / ' + c.atleta2) : (c.atleta1 || 'Dupla A');
             var nomeDuplaB = (c.atleta3 && c.atleta4) ? (c.atleta3 + ' / ' + c.atleta4) : (c.atleta3 || 'Dupla B');
 
@@ -426,28 +427,58 @@
               </div>
             `;
           } else {
+            // MODO INDIVIDUAL: 3 JOGOS DO RODÍZIO
+            var aA = c.atleta1 || 'Atleta 1';
+            var aB = c.atleta2 || 'Atleta 2';
+            var aC = c.atleta3 || 'Atleta 3';
+            var aD = c.atleta4 || 'Atleta 4';
+
             inputsHTML = `
-              <div class="space-y-2">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">Pontuação Individual das Jogadoras</span>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1.5 shadow-md">
-                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta1 || ''}">${c.atleta1 || 'Atleta 1'}</span>
-                    <input type="number" id="p1_${c.idConfronto}" value="${c.pontos1 !== undefined && c.pontos1 !== null ? c.pontos1 : ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+              <div class="space-y-3">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">Rodízio do Mata-Mata (3 Jogos)</span>
+                
+                <!-- JOGO 1 -->
+                <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] space-y-1.5">
+                  <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">🎾 Jogo 1: (${aA} + ${aB}) vs (${aC} + ${aD})</span>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="text-[10px] text-slate-300 block truncate" title="${aA} / ${aB}">${aA} / ${aB}</label>
+                      <input type="number" id="mm_j1_a_${c.idConfronto}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-1.5 text-center text-xs font-mono font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+                    </div>
+                    <div>
+                      <label class="text-[10px] text-slate-300 block truncate" title="${aC} / ${aD}">${aC} / ${aD}</label>
+                      <input type="number" id="mm_j1_b_${c.idConfronto}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-1.5 text-center text-xs font-mono font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+                    </div>
                   </div>
+                </div>
 
-                  <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1.5 shadow-md">
-                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta2 || ''}">${c.atleta2 || 'Atleta 2'}</span>
-                    <input type="number" id="p2_${c.idConfronto}" value="${c.pontos2 !== undefined && c.pontos2 !== null ? c.pontos2 : ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+                <!-- JOGO 2 -->
+                <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] space-y-1.5">
+                  <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">🎾 Jogo 2: (${aA} + ${aC}) vs (${aB} + ${aD})</span>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="text-[10px] text-slate-300 block truncate" title="${aA} / ${aC}">${aA} / ${aC}</label>
+                      <input type="number" id="mm_j2_a_${c.idConfronto}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-1.5 text-center text-xs font-mono font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+                    </div>
+                    <div>
+                      <label class="text-[10px] text-slate-300 block truncate" title="${aB} / ${aD}">${aB} / ${aD}</label>
+                      <input type="number" id="mm_j2_b_${c.idConfronto}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-1.5 text-center text-xs font-mono font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+                    </div>
                   </div>
+                </div>
 
-                  <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1.5 shadow-md">
-                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta3 || ''}">${c.atleta3 || 'Atleta 3'}</span>
-                    <input type="number" id="p3_${c.idConfronto}" value="${c.pontos3 !== undefined && c.pontos3 !== null ? c.pontos3 : ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
-                  </div>
-
-                  <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] text-center space-y-1.5 shadow-md">
-                    <span class="text-xs font-bold text-slate-200 block truncate" title="${c.atleta4 || ''}">${c.atleta4 || 'Atleta 4'}</span>
-                    <input type="number" id="p4_${c.idConfronto}" value="${c.pontos4 !== undefined && c.pontos4 !== null ? c.pontos4 : ''}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+                <!-- JOGO 3 -->
+                <div class="bg-[#1a2336] p-3 rounded-xl border border-[#2a364f] space-y-1.5">
+                  <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">🎾 Jogo 3: (${aA} + ${aD}) vs (${aB} + ${aC})</span>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="text-[10px] text-slate-300 block truncate" title="${aA} / ${aD}">${aA} / ${aD}</label>
+                      <input type="number" id="mm_j3_a_${c.idConfronto}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-1.5 text-center text-xs font-mono font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+                    </div>
+                    <div>
+                      <label class="text-[10px] text-slate-300 block truncate" title="${aB} / ${aC}">${aB} / ${aC}</label>
+                      <input type="number" id="mm_j3_b_${c.idConfronto}" placeholder="0" class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-1.5 text-center text-xs font-mono font-bold text-amber-400 focus:outline-none focus:border-blue-500" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -518,21 +549,26 @@
   }
 
   function salvarMataMata(abaNome, idConfronto) {
-    var pontosArray = [];
     var modoAtivo = document.getElementById('seletorModo').value;
-    
-    var p1 = Number(document.getElementById('p1_' + idConfronto) ? document.getElementById('p1_' + idConfronto).value : 0);
-    var p2 = Number(document.getElementById('p2_' + idConfronto) ? document.getElementById('p2_' + idConfronto).value : 0);
-    pontosArray.push(p1);
-    pontosArray.push(p2);
+    var pontosParam = [];
 
-    var p3Input = document.getElementById('p3_' + idConfronto);
-    var p4Input = document.getElementById('p4_' + idConfronto);
-    if (p3Input && p4Input) {
-      var p3 = Number(p3Input.value) || 0;
-      var p4 = Number(p4Input.value) || 0;
-      pontosArray.push(p3);
-      pontosArray.push(p4);
+    if (modoAtivo === 'dupla') {
+      var p1 = Number(document.getElementById('p1_' + idConfronto) ? document.getElementById('p1_' + idConfronto).value : 0);
+      var p2 = Number(document.getElementById('p2_' + idConfronto) ? document.getElementById('p2_' + idConfronto).value : 0);
+      pontosParam = [p1, p2];
+    } else {
+      var j1A = Number(document.getElementById('mm_j1_a_' + idConfronto) ? document.getElementById('mm_j1_a_' + idConfronto).value : 0);
+      var j1B = Number(document.getElementById('mm_j1_b_' + idConfronto) ? document.getElementById('mm_j1_b_' + idConfronto).value : 0);
+      var j2A = Number(document.getElementById('mm_j2_a_' + idConfronto) ? document.getElementById('mm_j2_a_' + idConfronto).value : 0);
+      var j2B = Number(document.getElementById('mm_j2_b_' + idConfronto) ? document.getElementById('mm_j2_b_' + idConfronto).value : 0);
+      var j3A = Number(document.getElementById('mm_j3_a_' + idConfronto) ? document.getElementById('mm_j3_a_' + idConfronto).value : 0);
+      var j3B = Number(document.getElementById('mm_j3_b_' + idConfronto) ? document.getElementById('mm_j3_b_' + idConfronto).value : 0);
+
+      pontosParam = [
+        { duplaA: j1A, duplaB: j1B },
+        { duplaA: j2A, duplaB: j2B },
+        { duplaA: j3A, duplaB: j3B }
+      ];
     }
 
     exibirAlerta("Salvando confronto...", "info");
@@ -540,7 +576,7 @@
     chamarAPI('salvarMataMata', { 
       abaNome: abaNome, 
       idConfronto: idConfronto, 
-      pontosArray: pontosArray,
+      pontosArray: pontosParam,
       modo: modoAtivo
     })
     .then(function(res) {
