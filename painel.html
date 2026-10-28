@@ -82,7 +82,7 @@
         </select>
       </div>
 
-      <!-- FORMULÁRIO DE LANÇAMENTO DE PONTOS -->
+      <!-- FORMULÁRIO DE LANÇAMENTO DE PONTOS DOS 3 JOGOS -->
       <div id="cardLancamentoGrupo" class="hidden bg-[#111827] p-6 rounded-2xl border border-[#1e293d] space-y-5 shadow-lg">
         <div class="flex items-center justify-between border-b border-[#1e293d] pb-3">
           <h2 id="tituloGrupoSelecionado" class="text-base font-bold text-white">Grupo -</h2>
@@ -91,14 +91,14 @@
 
         <form id="formPontosGrupo" onsubmit="salvarPontosGrupo(event)" class="space-y-4">
           <div id="containerAtletas" class="space-y-3">
-            <!-- Inputs gerados via JS -->
+            <!-- Blocos dos 3 jogos gerados via JS -->
           </div>
 
           <button 
             type="submit" 
             id="btnSalvarGrupo"
             class="w-full bg-[#2563eb] hover:bg-blue-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2 text-sm">
-            <span id="btnTextGrupo">Salvar Pontuações</span>
+            <span id="btnTextGrupo">Salvar Pontuações dos 3 Jogos</span>
             <div id="spinnerGrupo" class="hidden animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
           </button>
         </form>
@@ -263,24 +263,64 @@
       badgeStatus.className = "text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20";
     }
 
-    containerAtletas.innerHTML = "";
-    (grupo.atletas || []).forEach(function(atleta, index) {
-      var div = document.createElement('div');
-      div.className = "flex items-center justify-between bg-[#1a2336] p-3.5 rounded-xl border border-[#2a364f]";
-      div.innerHTML = `
-        <label class="text-xs font-semibold text-white truncate max-w-[200px]">${atleta || 'Atleta ' + (index+1)}</label>
-        <input 
-          type="number" 
-          min="0" 
-          max="100" 
-          data-atleta="${atleta}" 
-          placeholder="0" 
-          required 
-          class="w-20 bg-[#0d1527] border border-[#2a364f] rounded-lg px-3 py-2 text-center text-base font-mono font-bold text-amber-400 focus:outline-none focus:border-blue-500"
-        />
-      `;
-      containerAtletas.appendChild(div);
-    });
+    var atls = grupo.atletas || [];
+    var aA = atls[0] || 'Atleta A';
+    var aB = atls[1] || 'Atleta B';
+    var aC = atls[2] || 'Atleta C';
+    var aD = atls[3] || 'Atleta D';
+
+    containerAtletas.innerHTML = `
+      <!-- JOGO 1 -->
+      <div class="bg-[#1a2336] p-4 rounded-xl border border-[#2a364f] space-y-2">
+        <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block border-b border-[#2a364f] pb-1">
+          🎾 Jogo 1: (${aA} + ${aB}) vs (${aC} + ${aD})
+        </span>
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block truncate" title="${aA} / ${aB}">${aA} / ${aB}</label>
+            <input type="number" id="g_j1_a" min="0" max="100" placeholder="0" required class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-mono font-bold text-amber-400 focus:outline-none focus:border-blue-500 mt-1" />
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block truncate" title="${aC} / ${aD}">${aC} / ${aD}</label>
+            <input type="number" id="g_j1_b" min="0" max="100" placeholder="0" required class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-mono font-bold text-amber-400 focus:outline-none focus:border-blue-500 mt-1" />
+          </div>
+        </div>
+      </div>
+
+      <!-- JOGO 2 -->
+      <div class="bg-[#1a2336] p-4 rounded-xl border border-[#2a364f] space-y-2">
+        <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block border-b border-[#2a364f] pb-1">
+          🎾 Jogo 2: (${aA} + ${aC}) vs (${aB} + ${aD})
+        </span>
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block truncate" title="${aA} / ${aC}">${aA} / ${aC}</label>
+            <input type="number" id="g_j2_a" min="0" max="100" placeholder="0" required class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-mono font-bold text-amber-400 focus:outline-none focus:border-blue-500 mt-1" />
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block truncate" title="${aB} / ${aD}">${aB} / ${aD}</label>
+            <input type="number" id="g_j2_b" min="0" max="100" placeholder="0" required class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-mono font-bold text-amber-400 focus:outline-none focus:border-blue-500 mt-1" />
+          </div>
+        </div>
+      </div>
+
+      <!-- JOGO 3 -->
+      <div class="bg-[#1a2336] p-4 rounded-xl border border-[#2a364f] space-y-2">
+        <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block border-b border-[#2a364f] pb-1">
+          🎾 Jogo 3: (${aA} + ${aD}) vs (${aB} + ${aC})
+        </span>
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block truncate" title="${aA} / ${aD}">${aA} / ${aD}</label>
+            <input type="number" id="g_j3_a" min="0" max="100" placeholder="0" required class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-mono font-bold text-amber-400 focus:outline-none focus:border-blue-500 mt-1" />
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block truncate" title="${aB} / ${aC}">${aB} / ${aC}</label>
+            <input type="number" id="g_j3_b" min="0" max="100" placeholder="0" required class="w-full bg-[#0d1527] border border-[#2a364f] rounded-lg p-2 text-center text-sm font-mono font-bold text-amber-400 focus:outline-none focus:border-blue-500 mt-1" />
+          </div>
+        </div>
+      </div>
+    `;
 
     cardLancamento.classList.remove('hidden');
   }
@@ -289,42 +329,35 @@
     e.preventDefault();
     
     var idGrupo = document.getElementById('selectGrupo').value;
-    var inputs = document.querySelectorAll('#containerAtletas input');
     var btnSalvar = document.getElementById('btnSalvarGrupo');
     var btnText = document.getElementById('btnTextGrupo');
     var spinner = document.getElementById('spinnerGrupo');
 
-    var pontosObjeto = {};
-    var atletasLista = [];
-    var maiorPontuacao = 0;
+    var j1A = Number(document.getElementById('g_j1_a').value) || 0;
+    var j1B = Number(document.getElementById('g_j1_b').value) || 0;
+    var j2A = Number(document.getElementById('g_j2_a').value) || 0;
+    var j2B = Number(document.getElementById('g_j2_b').value) || 0;
+    var j3A = Number(document.getElementById('g_j3_a').value) || 0;
+    var j3B = Number(document.getElementById('g_j3_b').value) || 0;
 
-    inputs.forEach(function(input) {
-      var nomeAtleta = input.getAttribute('data-atleta');
-      var pts = Number(input.value) || 0;
-      pontosObjeto[nomeAtleta] = pts;
-      atletasLista.push(nomeAtleta);
-      if (pts > maiorPontuacao) maiorPontuacao = pts;
-    });
+    var placares = [
+      { duplaA: j1A, duplaB: j1B },
+      { duplaA: j2A, duplaB: j2B },
+      { duplaA: j3A, duplaB: j3B }
+    ];
 
     btnSalvar.disabled = true;
     btnText.textContent = "Gravando...";
     spinner.classList.remove('hidden');
 
-    chamarAPI('salvarPontosIndividual', {
-      atletas: atletasLista,
-      pontos: maiorPontuacao,
-      fase: 'grupos'
-    })
-    .then(function() {
-      return chamarAPI('salvarPontosGrupo', { idGrupo: idGrupo, pontos: pontosObjeto });
-    })
+    chamarAPI('salvarPontosGrupo', { idGrupo: idGrupo, pontos: placares })
     .then(function(res) {
       btnSalvar.disabled = false;
-      btnText.textContent = "Salvar Pontuações";
+      btnText.textContent = "Salvar Pontuações dos 3 Jogos";
       spinner.classList.add('hidden');
 
       if (res && res.sucesso) {
-        exibirAlerta("Pontuação registrada com sucesso!", "sucesso");
+        exibirAlerta("Pontuação dos 3 jogos registrada com sucesso!", "sucesso");
         carregarListaGrupos();
       } else {
         exibirAlerta((res && res.erro) ? res.erro : "Erro ao salvar.", "erro");
@@ -332,7 +365,7 @@
     })
     .catch(function(err) {
       btnSalvar.disabled = false;
-      btnText.textContent = "Salvar Pontuações";
+      btnText.textContent = "Salvar Pontuações dos 3 Jogos";
       spinner.classList.add('hidden');
       exibirAlerta("Erro de conexão: " + err.message, "erro");
     });
